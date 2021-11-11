@@ -105,6 +105,15 @@ void engine::perspective_camera::on_update(const timestep& timestep)
     else if(engine::input::key_pressed(engine::key_codes::KEY_W)) // up
         move(e_direction::forward, timestep);
 
+    /**if (input::mouse_button_pressed(3))
+    {
+        m_position += s_movement_speed * timestep * m_front_vector;
+    }
+    else if (input::mouse_button_pressed(4))
+    {
+        m_position -= s_movement_speed * timestep * m_front_vector;
+    }**/
+
     //float delta = input::mouse_scroll();
     //process_mouse_scroll(delta);
 }
@@ -146,10 +155,16 @@ void engine::perspective_camera::process_mouse(float mouse_delta_x, float mouse_
 
 void engine::perspective_camera::move(e_direction direction, timestep ts) 
 { 
-    if(direction == forward) 
-        m_position += s_movement_speed * ts * m_front_vector; 
-    else if(direction == backward) 
-        m_position -= s_movement_speed * ts * m_front_vector; 
+    if (direction == forward) {
+        float y = m_position.y;
+        m_position += s_movement_speed * ts * m_front_vector;
+        //m_position.y = y;
+    }
+    else if (direction == backward) {
+        float y = m_position.y;
+        m_position -= s_movement_speed * ts * m_front_vector;
+        //m_position.y = y;
+    }
 
     if(direction == left) 
         m_position -= s_movement_speed * ts * m_right_vector;
@@ -203,8 +218,10 @@ void engine::perspective_camera::update_view_matrix()
     //transform = glm::translate(transform, m_position); 
 
     // inverting the transform matrix  
-    //m_view_mat = glm::inverse(transform); 
-    m_view_mat = glm::lookAt(m_position, m_position + m_front_vector, m_up_vector);
+    //m_view_mat = glm::inverse(transform);
+    glm::vec3 center = m_position + m_front_vector;
+    //center.y = 0.f;
+    m_view_mat = glm::lookAt(m_position, /**m_position + m_front_vector**/center, m_up_vector);
     m_view_projection_mat = m_projection_mat * m_view_mat; 
 }
 
