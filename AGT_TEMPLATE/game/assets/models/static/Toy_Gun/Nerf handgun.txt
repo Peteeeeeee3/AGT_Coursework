@@ -1,0 +1,11 @@
+Nerf handgun readme file.
+
+Nerf Handgun, low and high res files of a plastic Nerf Handgun (is that the same as airsoft?), in .obj format with .mtl plasticy textures.
+
+Have fun shooting each other with it.
+
+It has colour areas (shading domains) set up so you can change the colours and stuff too :)
+
+If you use it, I'd really like to know what it looks like in your renders, and if anyone asks, I'd appreciate you letting them know where it came from, so if they want some other stuff, I can get repeat offenders... I mean repeat work. ^_^
+
+Freebie, created by Ruth Andrews 2012©.

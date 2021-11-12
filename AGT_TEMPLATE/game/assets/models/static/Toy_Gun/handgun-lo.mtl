@@ -1,0 +1,45 @@
+newmtl def_surf_mat
+d 1
+Ns 0
+Ni 0
+Ka 0 0 0
+Kd 0.819608 0.827451 0.866667
+Ks 0.14902 0.14902 0.14902
+Km 0
+
+newmtl Chamber_plastic
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 0.890196 0.72549 0.117647
+Ks 1 1 1
+Km 0
+
+newmtl Red_stuff
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 0 0
+Ks 1 1 1
+Km 0
+
+newmtl Grey_plastic
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 0.384314 0.384314 0.384314
+Ks 1 1 1
+Km 0
+
+newmtl Gun_plastic
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 0.25098 0.4 0.898039
+Ks 1 1 1
+Km 0
+

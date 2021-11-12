@@ -1,6 +1,7 @@
 #pragma once
 #include <engine.h>
 #include "player.h"
+#include "tower.h"
 
 class example_layer : public engine::layer
 {
@@ -15,10 +16,20 @@ public:
 private:
 	//void check_bounce();
 
-	engine::ref<engine::skybox>			m_skybox{};
+	engine::ref<engine::skybox>			m_game_skybox{};
+	engine::ref<engine::skybox>			m_menu_skybox{};
 	std::vector<engine::ref<engine::game_object>>	m_terrain{};
-	engine::ref<engine::game_object> m_gchair{};
-	engine::ref<engine::game_object> m_kraken{};
+	//engine::ref<engine::game_object> m_gchair{};
+
+	//menu componenets
+	engine::ref<tower>					m_menu_toygun_r{};
+	engine::ref<tower>					m_menu_toygun_l{};
+	engine::ref<engine::game_object>	m_menu_text{};
+	engine::ref<engine::game_object>	m_menu_controls{};
+	bool inMenu = true;
+	bool showingCtrls = false;
+	glm::vec3							m_menu_active_pos = glm::vec3(0.f, 5.5f, 10.f);
+	glm::vec3							m_menu_inactive_pos = glm::vec3(0.f, 5.5f, -15.f);
 
 	player m_player;
 	//engine::ref<engine::game_object>	m_ball{};
@@ -36,6 +47,6 @@ private:
 	float								m_prev_sphere_y_vel = 0.f;
 	engine::ref<engine::text_manager>	m_text_manager{};
 
-    engine::orthographic_camera       m_2d_camera; 
-    engine::perspective_camera        m_3d_camera;
+    engine::orthographic_camera			m_2d_camera; 
+    engine::perspective_camera			m_3d_camera;
 };

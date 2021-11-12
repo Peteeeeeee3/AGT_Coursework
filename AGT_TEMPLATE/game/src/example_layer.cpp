@@ -6,6 +6,7 @@
 #include "engine/events/key_event.h"
 #include "engine/utils/track.h"
 #include "player.h"
+#include "tower.h"
 
 example_layer::example_layer() 
     :m_2d_camera(-1.6f, 1.6f, -0.9f, 0.9f), 
@@ -56,16 +57,16 @@ example_layer::example_layer()
 
 
 	// Skybox texture from http://www.vwall.it/wp-content/plugins/canvasio3dpro/inc/resource/cubeMaps/
-	/**m_skybox = engine::skybox::create(50.f,
+	m_menu_skybox = engine::skybox::create(50.f,
 		{ engine::texture_2d::create("assets/textures/skybox/SkyboxFront.bmp", true),
 		  engine::texture_2d::create("assets/textures/skybox/SkyboxRight.bmp", true),
 		  engine::texture_2d::create("assets/textures/skybox/SkyboxBack.bmp", true),
 		  engine::texture_2d::create("assets/textures/skybox/SkyboxLeft.bmp", true),
 		  engine::texture_2d::create("assets/textures/skybox/SkyboxTop.bmp", true),
 		  engine::texture_2d::create("assets/textures/skybox/SkyboxBottom.bmp", true)
-		});**/
+		});
 
-	m_skybox = engine::skybox::create(50.f,
+	m_game_skybox = engine::skybox::create(50.f,
 		{ engine::texture_2d::create("assets/textures/skybox/posz.jpg", true),
 		  engine::texture_2d::create("assets/textures/skybox/posx.jpg", true),
 		  engine::texture_2d::create("assets/textures/skybox/negz.jpg", true),
@@ -121,15 +122,41 @@ example_layer::example_layer()
 	gchair_props.bounding_shape = gchair_model->size() / 2.f *gchair_scale;
 	m_gchair = engine::game_object::create(gchair_props);**/
 
-	engine::ref<engine::model> kraken_model = engine::model::create("assets/models/static/Kraken/Razer kraken.obj");
-	engine::game_object_properties kraken_props;
-	kraken_props.meshes = kraken_model->meshes();
-	kraken_props.textures = kraken_model->textures();
-	float kraken_scale = 1.f;
-	kraken_props.position = { 0.f, 0.5f, 0.f };
-	kraken_props.scale = glm::vec3(kraken_scale);
-	kraken_props.bounding_shape = kraken_model->size() / 2.f * kraken_scale;
-	m_kraken = engine::game_object::create(kraken_props);
+	//engine::ref<engine::model> kraken_model = engine::model::create("assets/models/static/Kraken/Razer kraken.obj");
+	engine::ref<engine::model> toygun_model = engine::model::create("assets/models/static/Toy_Gun/handgun-lo.obj");
+	engine::game_object_properties toygun_props;
+	toygun_props.meshes = toygun_model->meshes();
+	toygun_props.textures = toygun_model->textures();
+	float toygun_scale = 0.0125f;
+	toygun_props.position = { -3.f, 3.f, 8.f };
+	toygun_props.scale = glm::vec3(toygun_scale);
+	toygun_props.bounding_shape = toygun_model->size() / 2.f * toygun_scale;
+	m_menu_toygun_r = tower::create(toygun_props);
+	toygun_props.position = { 3.f, 3.f, 8.f };
+	m_menu_toygun_l = tower::create(toygun_props);
+
+	//menun text 
+	engine::ref<engine::cuboid> container_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, 0.5f), false);
+	engine::ref<engine::texture_2d> container_texture = engine::texture_2d::create("assets/textures/game_title.png", true);
+	engine::game_object_properties container_props;
+	container_props.position = { 0.f, 5.5f, 10.f };
+	container_props.meshes = { container_shape->mesh() };
+	float container_scale = 0.75f;
+	container_props.scale = glm::vec3(container_scale);
+	container_props.bounding_shape = glm::vec3(10.f, 4.f, 0.5f);
+	container_props.textures = { container_texture };
+	m_menu_text = engine::game_object::create(container_props);
+
+	engine::ref<engine::cuboid> cont_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, .5f), false);
+	engine::ref<engine::texture_2d> cont_texture = engine::texture_2d::create("assets/textures/temp_text.png", true);
+	engine::game_object_properties cont_props;
+	cont_props.position = { 0.f, 5.5f, -15.f };
+	cont_props.meshes = { cont_shape->mesh() };
+	float cont_scale = 0.75f;
+	cont_props.scale = glm::vec3(cont_scale);
+	cont_props.bounding_shape = glm::vec3(10.f, 4.f, 0.5f);
+	cont_props.textures = { cont_texture };
+	m_menu_controls = engine::game_object::create(cont_props);
 
 	/**engine::ref<engine::sphere> sphere_shape = engine::sphere::create(10, 20, 0.5f);
 	engine::game_object_properties sphere_props;
@@ -162,23 +189,45 @@ example_layer::~example_layer() {}
 
 void example_layer::on_update(const engine::timestep& time_step) 
 {
-    m_3d_camera.on_update(time_step);
+	if (inMenu)
+	{
+		m_3d_camera.set_view_matrix(glm::vec3(0.f, 5.f, 0.f), glm::vec3(0.f, 5.f, 1.f));
+		//m_3d_camera.on_update(time_step);
 
-	m_physics_manager->dynamics_world_update(m_game_objects, double(time_step));
+		m_menu_toygun_r->update(true, time_step);
+		m_menu_toygun_l->update(false, time_step);
 
-	//m_mannequin->animated_mesh()->on_update(time_step);
+		if (showingCtrls)
+		{
+			m_menu_controls->set_position(m_menu_active_pos);
+			m_menu_text->set_position(m_menu_inactive_pos);
+		}
+		else
+		{
+			m_menu_controls->set_position(m_menu_inactive_pos);
+			m_menu_text->set_position(m_menu_active_pos);
+		}
+	}
+	else
+	{
+		m_3d_camera.on_update(time_step);
 
-	m_audio_manager->update_with_camera(m_3d_camera);
+		m_physics_manager->dynamics_world_update(m_game_objects, double(time_step));
 
-	//check_bounce();
+		//m_mannequin->animated_mesh()->on_update(time_step);
 
-	//m_player.update_camera(m_3d_camera, time_step);
+		m_audio_manager->update_with_camera(m_3d_camera);
+
+		//check_bounce();
+
+		//m_player.update_camera(m_3d_camera, time_step);
+	}
 } 
 
 void example_layer::on_render() 
 {
-    engine::render_command::clear_color({0.2f, 0.3f, 0.3f, 1.0f}); 
-    engine::render_command::clear();
+	engine::render_command::clear_color({ 0.2f, 0.3f, 0.3f, 1.0f });
+	engine::render_command::clear();
 
 	// Set up  shader. (renders textures and materials)
 	const auto mesh_shader = engine::renderer::shaders_library()->get("mesh");
@@ -187,40 +236,83 @@ void example_layer::on_render()
 	// Set up some of the scene's parameters in the shader
 	std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("gEyeWorldPos", m_3d_camera.position());
 
-	// Position the skybox centred on the player and render it
-	glm::mat4 skybox_tranform(1.0f);
-	skybox_tranform = glm::translate(skybox_tranform, m_3d_camera.position());
-	for (const auto& texture : m_skybox->textures())
+	///////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////menu rendering
+	///////////////////////////////////////////////////////////////////////
+	if (inMenu)
 	{
-		texture->bind();
+		// Position the skybox centred on the player and render it
+		glm::mat4 skybox_transform(1.0f);
+		skybox_transform = glm::translate(skybox_transform, m_3d_camera.position());
+		for (const auto& texture : m_menu_skybox->textures())
+		{
+			texture->bind();
+		}
+		engine::renderer::submit(mesh_shader, m_menu_skybox, skybox_transform);
+
+		m_material->submit(mesh_shader);
+		engine::renderer::submit(mesh_shader, m_menu_text);
+		engine::renderer::submit(mesh_shader, m_menu_controls);
+
+		glm::mat4 toygun_transfrom(1.f);
+		toygun_transfrom = glm::translate(toygun_transfrom, m_menu_toygun_r->position());
+		toygun_transfrom = glm::rotate(toygun_transfrom, m_menu_toygun_r->rotation_amount(), glm::vec3(0.f, 1.f, 0.f));
+		toygun_transfrom = glm::scale(toygun_transfrom, glm::vec3(0.025f, 0.025f, 0.025f));
+		engine::renderer::submit(mesh_shader, toygun_transfrom, m_menu_toygun_r);
+
+		glm::mat4 toygun_transfrom_l(1.f);
+		toygun_transfrom_l = glm::translate(toygun_transfrom_l, m_menu_toygun_l->position());
+		toygun_transfrom_l = glm::rotate(toygun_transfrom_l, m_menu_toygun_l->rotation_amount(), glm::vec3(0.f, 1.f, 0.f));
+		toygun_transfrom_l = glm::scale(toygun_transfrom_l, glm::vec3(0.025f, 0.025f, 0.025f));
+		engine::renderer::submit(mesh_shader, toygun_transfrom_l, m_menu_toygun_l);
+
+		//render signature
+		const auto text_shader = engine::renderer::shaders_library()->get("text_2D");
+		m_text_manager->render_text(text_shader, "Peter Farkas, 2021", (float)engine::application::window().width() - 210.f, (float)engine::application::window().height() - 25.f, 0.5f, glm::vec4(0.f, 0.f, 0.f, 1.f));
 	}
-	engine::renderer::submit(mesh_shader, m_skybox, skybox_tranform);
 
-	for (auto section : m_terrain) {
-		engine::renderer::submit(mesh_shader, section);
+	///////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////game rendering
+	///////////////////////////////////////////////////////////////////////
+	else {
+		// Position the skybox centred on the player and render it
+		glm::mat4 skybox_transform(1.0f);
+		skybox_transform = glm::translate(skybox_transform, m_3d_camera.position());
+		for (const auto& texture : m_game_skybox->textures())
+		{
+			texture->bind();
+		}
+		engine::renderer::submit(mesh_shader, m_game_skybox, skybox_transform);
+
+		for (auto section : m_terrain) {
+			engine::renderer::submit(mesh_shader, section);
+		}
+
+		//glm::mat4 gchair_transform(1.f);
+		//gchair_transform = glm::translate(gchair_transform, m_gchair->position());
+		//gchair_transform = glm::scale(gchair_transform, m_gchair->scale());
+		//engine::renderer::submit(mesh_shader, gchair_transform, m_gchair);
+
+		for (int i = 0; i < 8; ++i) {
+			glm::mat4 toygun_transfrom(1.f);
+			toygun_transfrom = glm::translate(toygun_transfrom, glm::vec3(i, i, i));
+			toygun_transfrom = glm::rotate(toygun_transfrom, (glm::pi<float>() * 2 / 8 * i), glm::vec3(0.f, 1.f, 0.f));
+			toygun_transfrom = glm::scale(toygun_transfrom, m_menu_toygun_r->scale());
+			engine::renderer::submit(mesh_shader, toygun_transfrom, m_menu_toygun_r);
+		}
+
+		/**m_material->submit(mesh_shader);
+		engine::renderer::submit(mesh_shader, m_ball);**/
+
+		/**m_mannequin_material->submit(mesh_shader);
+		engine::renderer::submit(mesh_shader, m_mannequin);**/
+
+		engine::renderer::end_scene();
+
+		// Render text
+		const auto text_shader = engine::renderer::shaders_library()->get("text_2D");
+		m_text_manager->render_text(text_shader, "Orange Text", 10.f, (float)engine::application::window().height() - 25.f, 0.5f, glm::vec4(1.f, 0.5f, 0.f, 1.f));
 	}
-
-	glm::mat4 gchair_transform(1.f);
-	gchair_transform = glm::translate(gchair_transform, m_gchair->position());
-	gchair_transform = glm::scale(gchair_transform, m_gchair->scale());
-	//engine::renderer::submit(mesh_shader, gchair_transform, m_gchair);
-
-	glm::mat4 kraken_transfrom(1.f);
-	kraken_transfrom = glm::translate(gchair_transform, m_kraken->position());
-	kraken_transfrom = glm::rotate(kraken_transfrom, glm::pi<float>() / 2, glm::vec3(0.f, 1.f, 0.f));
-	kraken_transfrom = glm::scale(kraken_transfrom, m_kraken->scale());
-	engine::renderer::submit(mesh_shader, kraken_transfrom, m_kraken);
-	/**m_material->submit(mesh_shader);
-	engine::renderer::submit(mesh_shader, m_ball);**/
-
-	/**m_mannequin_material->submit(mesh_shader);
-	engine::renderer::submit(mesh_shader, m_mannequin);**/
-
-    engine::renderer::end_scene();
-
-	// Render text
-	const auto text_shader = engine::renderer::shaders_library()->get("text_2D");
-	m_text_manager->render_text(text_shader, "Orange Text", 10.f, (float)engine::application::window().height()-25.f, 0.5f, glm::vec4(1.f, 0.5f, 0.f, 1.f));
 } 
 
 void example_layer::on_event(engine::event& event) 
@@ -228,11 +320,33 @@ void example_layer::on_event(engine::event& event)
     if(event.event_type() == engine::event_type_e::key_pressed) 
     { 
         auto& e = dynamic_cast<engine::key_pressed_event&>(event); 
-        if(e.key_code() == engine::key_codes::KEY_TAB) 
-        { 
-            engine::render_command::toggle_wireframe();
-        }
-    } 
+		if (e.key_code() == engine::key_codes::KEY_TAB)
+		{	
+			engine::render_command::toggle_wireframe();
+		}
+		if (e.key_code() == engine::key_codes::KEY_BACKSPACE)
+		{
+			if (!inMenu)
+				inMenu = true;
+			else
+				inMenu = false;
+		}
+		//menu controls
+		if(inMenu)
+		{
+			if (e.key_code() == engine::key_codes::KEY_SPACE)
+			{
+				inMenu = false;
+			}
+			if (e.key_code() == engine::key_codes::KEY_C)
+			{
+				if (!showingCtrls)
+					showingCtrls = true;
+				else
+					showingCtrls = false;
+			}
+		}
+    }
 }
 
 /**void example_layer::check_bounce()
