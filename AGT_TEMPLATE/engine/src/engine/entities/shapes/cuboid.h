@@ -9,7 +9,7 @@ namespace engine
 	{
 	public:
 		/// \brief Constructor
-		cuboid(glm::vec3 half_extents, bool inwards);
+		cuboid(glm::vec3 half_extents, bool inwards, bool isRepeated);
 
 		/// \brief Destructor
 		~cuboid();
@@ -19,7 +19,7 @@ namespace engine
 		bool inwards() const { return m_inwards; }
 		ref<engine::mesh> mesh() const { return m_mesh; }
 
-		static ref<cuboid> create(glm::vec3 half_extents, bool inwards);
+		static ref<cuboid> create(glm::vec3 half_extents, bool inwards, bool isRepeated);
 	private:
 		/// \brief Fields
 		// Dimensions of the cuboid specified by a vector of half-extents. Cuboid is centered on the origin in local coordinates.

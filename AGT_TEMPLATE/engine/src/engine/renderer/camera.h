@@ -113,7 +113,8 @@ namespace engine
             right 
         };
 
-    public: 
+    public:
+        perspective_camera() {}
         perspective_camera( 
             float width, float height,  
             float fov = 45.f,  

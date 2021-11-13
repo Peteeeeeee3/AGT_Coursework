@@ -102,20 +102,8 @@ void engine::perspective_camera::on_update(const timestep& timestep)
 
     if(input::key_pressed(engine::key_codes::KEY_S)) // down
         move(e_direction::backward, timestep);
-    else if(engine::input::key_pressed(engine::key_codes::KEY_W)) // up
+    else if(input::key_pressed(engine::key_codes::KEY_W)) // up
         move(e_direction::forward, timestep);
-
-    /**if (input::mouse_button_pressed(3))
-    {
-        m_position += s_movement_speed * timestep * m_front_vector;
-    }
-    else if (input::mouse_button_pressed(4))
-    {
-        m_position -= s_movement_speed * timestep * m_front_vector;
-    }**/
-
-    //float delta = input::mouse_scroll();
-    //process_mouse_scroll(delta);
 }
 
 const glm::mat4& engine::perspective_camera::projection_matrix() const 

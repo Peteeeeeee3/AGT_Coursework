@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "terrain.h"
 
-engine::terrain::terrain(float length, float depth, float width) : cuboid(glm::vec3(length, depth, width), false), m_length(length), m_depth(depth), m_width(width) {}
+engine::terrain::terrain(float length, float depth, float width) : cuboid(glm::vec3(length, depth, width), false, true), m_length(length), m_depth(depth), m_width(width) {}
 
 engine::terrain::~terrain() {}
 

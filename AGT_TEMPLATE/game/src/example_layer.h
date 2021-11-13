@@ -19,6 +19,7 @@ private:
 	engine::ref<engine::skybox>			m_game_skybox{};
 	engine::ref<engine::skybox>			m_menu_skybox{};
 	std::vector<engine::ref<engine::game_object>>	m_terrain{};
+	engine::ref<engine::game_object>	m_cone{};
 	//engine::ref<engine::game_object> m_gchair{};
 
 	//menu componenets

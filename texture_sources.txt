@@ -6,3 +6,6 @@ W hotel
 path.png from:
 https://opengameart.org/content/seamless-snow-texture-0
 originally "snow01.png"
+
+wizard hat:
+https://imgur.com/a/F98un

@@ -7,6 +7,7 @@
 #include "engine/utils/track.h"
 #include "player.h"
 #include "tower.h"
+#include "engine/entities/shapes/cone.h"
 
 example_layer::example_layer() 
     :m_2d_camera(-1.6f, 1.6f, -0.9f, 0.9f), 
@@ -90,27 +91,21 @@ example_layer::example_layer()
 	mannequin_props.bounding_shape = m_skinned_mesh->size() / 2.f * mannequin_props.scale.x;
 	m_mannequin = engine::game_object::create(mannequin_props);**/
 
-	m_player = player(/**m_3d_camera**/);
+	m_player = player(m_3d_camera);
 
 	std::vector<engine::ref<engine::texture_2d>> terrain_textures = { engine::texture_2d::create("assets/textures/Wood.jpg", false) };
-	for (int i = 0; i < 10; ++i)
-	{
-		for (int j = 0; j < 10; ++j)
-		{
-			// Load the terrain texture and create a terrain mesh. Create a terrain object. Set its properties
-			//std::vector<engine::ref<engine::texture_2d>> terrain_textures = { engine::texture_2d::create("assets/textures/terrain.bmp", false) };
-			engine::ref<engine::terrain> terrain_shape = engine::terrain::create(0.5f, 0.1f, 0.5f);
-			engine::game_object_properties terrain_props;
-			terrain_props.meshes = { terrain_shape->mesh() };
-			terrain_props.textures = terrain_textures;
-			terrain_props.is_static = true;
-			terrain_props.type = 0;
-			terrain_props.bounding_shape = glm::vec3(0.5f, 0.1f, 0.5f);
-			terrain_props.restitution = 0.92f;
-			m_terrain.push_back(engine::game_object::create(terrain_props));
-			m_terrain[m_terrain.size() - 1]->set_position(glm::vec3(i, 0.0f, j));
-		}
-	}
+	// Load the terrain texture and create a terrain mesh. Create a terrain object. Set its properties
+	//std::vector<engine::ref<engine::texture_2d>> terrain_textures = { engine::texture_2d::create("assets/textures/terrain.bmp", false) };
+	engine::ref<engine::terrain> terrain_shape = engine::terrain::create(100.f, 0.1f, 100.f);
+	engine::game_object_properties terrain_props;
+	terrain_props.meshes = { terrain_shape->mesh() };
+	terrain_props.textures = terrain_textures;
+	terrain_props.is_static = true;
+	terrain_props.type = 0;
+	terrain_props.bounding_shape = glm::vec3(0.5f, 0.1f, 0.5f);
+	terrain_props.restitution = 0.92f;
+	m_terrain.push_back(engine::game_object::create(terrain_props));
+	m_terrain[m_terrain.size() - 1]->set_position(glm::vec3(0.f, 0.0f, 0.f));
 
 	/**engine::ref<engine::model> gchair_model = engine::model::create("assets/models/static/G-Chair/Cadeira.obj");
 	engine::game_object_properties gchair_props;
@@ -136,7 +131,7 @@ example_layer::example_layer()
 	m_menu_toygun_l = tower::create(toygun_props);
 
 	//menun text 
-	engine::ref<engine::cuboid> container_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, 0.5f), false);
+	engine::ref<engine::cuboid> container_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, 0.5f), false, false);
 	engine::ref<engine::texture_2d> container_texture = engine::texture_2d::create("assets/textures/game_title.png", true);
 	engine::game_object_properties container_props;
 	container_props.position = { 0.f, 5.5f, 10.f };
@@ -147,7 +142,7 @@ example_layer::example_layer()
 	container_props.textures = { container_texture };
 	m_menu_text = engine::game_object::create(container_props);
 
-	engine::ref<engine::cuboid> cont_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, .5f), false);
+	engine::ref<engine::cuboid> cont_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, .5f), false, false);
 	engine::ref<engine::texture_2d> cont_texture = engine::texture_2d::create("assets/textures/temp_text.png", true);
 	engine::game_object_properties cont_props;
 	cont_props.position = { 0.f, 5.5f, -15.f };
@@ -157,6 +152,14 @@ example_layer::example_layer()
 	cont_props.bounding_shape = glm::vec3(10.f, 4.f, 0.5f);
 	cont_props.textures = { cont_texture };
 	m_menu_controls = engine::game_object::create(cont_props);
+
+	engine::ref<engine::cone> cone_shape = engine::cone::create(300, 5.f, 3.f, glm::vec3(0.f, 0.f, 0.f));
+	engine::ref<engine::texture_2d> cone_texture = engine::texture_2d::create("assets/textures/wizard_hat.jpg", true);
+	engine::game_object_properties cone_props;
+	cone_props.position = { 0.f, 0.f, 0.f };
+	cone_props.meshes = { cone_shape->mesh() };
+	cone_props.textures = { cone_texture };
+	m_cone = engine::game_object::create(cone_props);
 
 	/**engine::ref<engine::sphere> sphere_shape = engine::sphere::create(10, 20, 0.5f);
 	engine::game_object_properties sphere_props;
@@ -211,6 +214,7 @@ void example_layer::on_update(const engine::timestep& time_step)
 	else
 	{
 		m_3d_camera.on_update(time_step);
+		m_player.update_camera(m_3d_camera, time_step);
 
 		m_physics_manager->dynamics_world_update(m_game_objects, double(time_step));
 
@@ -219,8 +223,6 @@ void example_layer::on_update(const engine::timestep& time_step)
 		m_audio_manager->update_with_camera(m_3d_camera);
 
 		//check_bounce();
-
-		//m_player.update_camera(m_3d_camera, time_step);
 	}
 } 
 
@@ -269,6 +271,8 @@ void example_layer::on_render()
 		//render signature
 		const auto text_shader = engine::renderer::shaders_library()->get("text_2D");
 		m_text_manager->render_text(text_shader, "Peter Farkas, 2021", (float)engine::application::window().width() - 210.f, (float)engine::application::window().height() - 25.f, 0.5f, glm::vec4(0.f, 0.f, 0.f, 1.f));
+		//render control toggle text
+		m_text_manager->render_text(text_shader, "Press C to toggle controls", (float)engine::application::window().width() / 2 - 120.f, 10.f, 0.5f, glm::vec4(0.702f, 0.208f, 0.082f, 1.f));
 	}
 
 	///////////////////////////////////////////////////////////////////////
@@ -295,11 +299,28 @@ void example_layer::on_render()
 
 		for (int i = 0; i < 8; ++i) {
 			glm::mat4 toygun_transfrom(1.f);
-			toygun_transfrom = glm::translate(toygun_transfrom, glm::vec3(i, i, i));
+			toygun_transfrom = glm::translate(toygun_transfrom, glm::vec3(3.f + i, i + 0.5f, 3.f+ i));
 			toygun_transfrom = glm::rotate(toygun_transfrom, (glm::pi<float>() * 2 / 8 * i), glm::vec3(0.f, 1.f, 0.f));
 			toygun_transfrom = glm::scale(toygun_transfrom, m_menu_toygun_r->scale());
 			engine::renderer::submit(mesh_shader, toygun_transfrom, m_menu_toygun_r);
 		}
+
+		//hat 1
+		glm::mat4 cone_transform(1.0f);
+		cone_transform = glm::scale(cone_transform, glm::vec3(0.5f));
+		engine::renderer::submit(mesh_shader, cone_transform, m_cone);
+
+		//hat 2
+		cone_transform = glm::translate(cone_transform, glm::vec3(5.f, 5.f, 5.f));
+		cone_transform = glm::rotate(cone_transform, glm::pi<float>(), glm::vec3(0.f, 0.f, 1.f));
+		cone_transform = glm::scale(cone_transform, glm::vec3(0.25f));
+		engine::renderer::submit(mesh_shader, cone_transform, m_cone);
+
+		//hat3
+		cone_transform = glm::translate(cone_transform, glm::vec3(10.f, 0.f, 10.f));
+		cone_transform = glm::rotate(cone_transform, glm::pi<float>() / 2, glm::vec3(0.f, 1.f, 1.f));
+		cone_transform = glm::scale(cone_transform, glm::vec3(0.25f));
+		engine::renderer::submit(mesh_shader, cone_transform, m_cone);
 
 		/**m_material->submit(mesh_shader);
 		engine::renderer::submit(mesh_shader, m_ball);**/
