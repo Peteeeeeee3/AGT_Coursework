@@ -12,12 +12,10 @@
 example_layer::example_layer() 
     :m_2d_camera(-1.6f, 1.6f, -0.9f, 0.9f), 
     m_3d_camera((float)engine::application::window().width(), (float)engine::application::window().height())
-
-
 {
     // Hide the mouse and lock it inside the window
     //engine::input::anchor_mouse(true);
-    engine::application::window().hide_mouse_cursor();
+    //engine::application::window().hide_mouse_cursor();
 
 	// Initialise audio and play background music
 	m_audio_manager = engine::audio_manager::instance();
@@ -53,10 +51,6 @@ example_layer::example_layer()
 	m_material = engine::material::create(1.0f, glm::vec3(1.0f, 0.1f, 0.07f),
 		glm::vec3(1.0f, 0.1f, 0.07f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f);
 
-	/**m_mannequin_material = engine::material::create(1.0f, glm::vec3(0.5f, 0.5f, 0.5f),
-		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f);**/
-
-
 	// Skybox texture from http://www.vwall.it/wp-content/plugins/canvasio3dpro/inc/resource/cubeMaps/
 	m_menu_skybox = engine::skybox::create(50.f,
 		{ engine::texture_2d::create("assets/textures/skybox/SkyboxFront.bmp", true),
@@ -76,26 +70,11 @@ example_layer::example_layer()
 		  engine::texture_2d::create("assets/textures/skybox/negy.jpg", true)
 		});
 
-	/**engine::ref<engine::skinned_mesh> m_skinned_mesh = engine::skinned_mesh::create("assets/models/animated/mannequin/free3Dmodel.dae");
-	m_skinned_mesh->LoadAnimationFile("assets/models/animated/mannequin/walking.dae");
-	m_skinned_mesh->LoadAnimationFile("assets/models/animated/mannequin/idle.dae");
-	m_skinned_mesh->LoadAnimationFile("assets/models/animated/mannequin/jump.dae");
-	m_skinned_mesh->LoadAnimationFile("assets/models/animated/mannequin/standard_run.dae");
-	m_skinned_mesh->switch_root_movement(false);**/
-
-	/**engine::game_object_properties mannequin_props;
-	mannequin_props.animated_mesh = m_skinned_mesh;
-	mannequin_props.scale = glm::vec3(1.f/ glm::max(m_skinned_mesh->size().x, glm::max(m_skinned_mesh->size().y, m_skinned_mesh->size().z)));
-	mannequin_props.position = glm::vec3(3.0f, 0.5f, -5.0f);
-	mannequin_props.type = 0;
-	mannequin_props.bounding_shape = m_skinned_mesh->size() / 2.f * mannequin_props.scale.x;
-	m_mannequin = engine::game_object::create(mannequin_props);**/
-
+	//create player object
 	m_player = player(m_3d_camera);
 
-	std::vector<engine::ref<engine::texture_2d>> terrain_textures = { engine::texture_2d::create("assets/textures/Wood.jpg", false) };
 	// Load the terrain texture and create a terrain mesh. Create a terrain object. Set its properties
-	//std::vector<engine::ref<engine::texture_2d>> terrain_textures = { engine::texture_2d::create("assets/textures/terrain.bmp", false) };
+	std::vector<engine::ref<engine::texture_2d>> terrain_textures = { engine::texture_2d::create("assets/textures/Wood.jpg", false) };
 	engine::ref<engine::terrain> terrain_shape = engine::terrain::create(100.f, 0.1f, 100.f);
 	engine::game_object_properties terrain_props;
 	terrain_props.meshes = { terrain_shape->mesh() };
@@ -104,20 +83,10 @@ example_layer::example_layer()
 	terrain_props.type = 0;
 	terrain_props.bounding_shape = glm::vec3(0.5f, 0.1f, 0.5f);
 	terrain_props.restitution = 0.92f;
-	m_terrain.push_back(engine::game_object::create(terrain_props));
-	m_terrain[m_terrain.size() - 1]->set_position(glm::vec3(0.f, 0.0f, 0.f));
+	terrain_props.position = glm::vec3(0.f, 0.0f, 0.f);
+	m_terrain = engine::game_object::create(terrain_props);
 
-	/**engine::ref<engine::model> gchair_model = engine::model::create("assets/models/static/G-Chair/Cadeira.obj");
-	engine::game_object_properties gchair_props;
-	gchair_props.meshes = gchair_model->meshes();
-	gchair_props.textures = gchair_model->textures();
-	float gchair_scale = 0.0125f;
-	gchair_props.position = { 0.f, 0.5f, 0.f };
-	gchair_props.scale = glm::vec3(gchair_scale);
-	gchair_props.bounding_shape = gchair_model->size() / 2.f *gchair_scale;
-	m_gchair = engine::game_object::create(gchair_props);**/
-
-	//engine::ref<engine::model> kraken_model = engine::model::create("assets/models/static/Kraken/Razer kraken.obj");
+	// load toy gun model and create object. set its properties
 	engine::ref<engine::model> toygun_model = engine::model::create("assets/models/static/Toy_Gun/handgun-lo.obj");
 	engine::game_object_properties toygun_props;
 	toygun_props.meshes = toygun_model->meshes();
@@ -130,7 +99,7 @@ example_layer::example_layer()
 	toygun_props.position = { 3.f, 3.f, 8.f };
 	m_menu_toygun_l = tower::create(toygun_props);
 
-	//menun text 
+	//menu text 
 	engine::ref<engine::cuboid> container_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, 0.5f), false, false);
 	engine::ref<engine::texture_2d> container_texture = engine::texture_2d::create("assets/textures/game_title.png", true);
 	engine::game_object_properties container_props;
@@ -142,8 +111,9 @@ example_layer::example_layer()
 	container_props.textures = { container_texture };
 	m_menu_text = engine::game_object::create(container_props);
 
+	// controls text
 	engine::ref<engine::cuboid> cont_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, .5f), false, false);
-	engine::ref<engine::texture_2d> cont_texture = engine::texture_2d::create("assets/textures/temp_text.png", true);
+	engine::ref<engine::texture_2d> cont_texture = engine::texture_2d::create("assets/textures/controls_text.png", true);
 	engine::game_object_properties cont_props;
 	cont_props.position = { 0.f, 5.5f, -15.f };
 	cont_props.meshes = { cont_shape->mesh() };
@@ -153,37 +123,20 @@ example_layer::example_layer()
 	cont_props.textures = { cont_texture };
 	m_menu_controls = engine::game_object::create(cont_props);
 
-	engine::ref<engine::cone> cone_shape = engine::cone::create(300, 5.f, 3.f, glm::vec3(0.f, 0.f, 0.f));
-	engine::ref<engine::texture_2d> cone_texture = engine::texture_2d::create("assets/textures/wizard_hat.jpg", true);
+	// create cone shape and add texture to it to create a wizard hat
+	engine::ref<engine::cone> cone_shape = engine::cone::create(150, 5.f, 3.f, glm::vec3(0.f, 0.f, 0.f));
+	engine::ref<engine::texture_2d> cone_texture = engine::texture_2d::create("assets/textures/wizard_hat.png", true);
 	engine::game_object_properties cone_props;
 	cone_props.position = { 0.f, 0.f, 0.f };
 	cone_props.meshes = { cone_shape->mesh() };
 	cone_props.textures = { cone_texture };
 	m_cone = engine::game_object::create(cone_props);
 
-	/**engine::ref<engine::sphere> sphere_shape = engine::sphere::create(10, 20, 0.5f);
-	engine::game_object_properties sphere_props;
-	sphere_props.position = { 0.f, 5.f, -5.f };
-	sphere_props.meshes = { sphere_shape->mesh() };
-	sphere_props.type = 1;
-	sphere_props.bounding_shape = glm::vec3(0.5f);
-	sphere_props.restitution = 0.92f;
-	sphere_props.mass = 0.000001f;
-	m_ball = engine::game_object::create(sphere_props);**/
+	m_game_objects.push_back(m_terrain);
 
-	for (auto section : m_terrain) {
-		m_game_objects.push_back(section);
-	}
-	//m_game_objects.push_back(m_ball);
-	//m_game_objects.push_back(m_cow);
-	//m_game_objects.push_back(m_tree);
-	//m_game_objects.push_back(m_pickup);
-	//m_game_objects.push_back(m_kraken);
 	m_physics_manager = engine::bullet_manager::create(m_game_objects);
 
 	m_text_manager = engine::text_manager::create();
-
-	//m_skinned_mesh->switch_animation(1);
 
 	m_3d_camera.set_view_matrix(glm::vec3(0.f, 10.f, 0.f), glm::vec3(-5.f, 0.f, -5.f));
 }
@@ -192,14 +145,17 @@ example_layer::~example_layer() {}
 
 void example_layer::on_update(const engine::timestep& time_step) 
 {
+	// update differenly when in menu
 	if (inMenu)
 	{
+		// lock camera is specific position and orientation 
 		m_3d_camera.set_view_matrix(glm::vec3(0.f, 5.f, 0.f), glm::vec3(0.f, 5.f, 1.f));
-		//m_3d_camera.on_update(time_step);
 
+		//update guns for rotation
 		m_menu_toygun_r->update(true, time_step);
 		m_menu_toygun_l->update(false, time_step);
 
+		// position correct cuboid before player
 		if (showingCtrls)
 		{
 			m_menu_controls->set_position(m_menu_active_pos);
@@ -213,16 +169,14 @@ void example_layer::on_update(const engine::timestep& time_step)
 	}
 	else
 	{
-		m_3d_camera.on_update(time_step);
+		// update camera via player class
+		// this is separated from the camera class as I will need to make multiple cameras and I do not want their codes to interfere
+		// the player can be imagined as a floating camera with some attributes like health, score, etc.
 		m_player.update_camera(m_3d_camera, time_step);
 
 		m_physics_manager->dynamics_world_update(m_game_objects, double(time_step));
 
-		//m_mannequin->animated_mesh()->on_update(time_step);
-
 		m_audio_manager->update_with_camera(m_3d_camera);
-
-		//check_bounce();
 	}
 } 
 
@@ -256,12 +210,14 @@ void example_layer::on_render()
 		engine::renderer::submit(mesh_shader, m_menu_text);
 		engine::renderer::submit(mesh_shader, m_menu_controls);
 
+		// right rotating menu gun 
 		glm::mat4 toygun_transfrom(1.f);
 		toygun_transfrom = glm::translate(toygun_transfrom, m_menu_toygun_r->position());
 		toygun_transfrom = glm::rotate(toygun_transfrom, m_menu_toygun_r->rotation_amount(), glm::vec3(0.f, 1.f, 0.f));
 		toygun_transfrom = glm::scale(toygun_transfrom, glm::vec3(0.025f, 0.025f, 0.025f));
 		engine::renderer::submit(mesh_shader, toygun_transfrom, m_menu_toygun_r);
 
+		// left rotating menu gun
 		glm::mat4 toygun_transfrom_l(1.f);
 		toygun_transfrom_l = glm::translate(toygun_transfrom_l, m_menu_toygun_l->position());
 		toygun_transfrom_l = glm::rotate(toygun_transfrom_l, m_menu_toygun_l->rotation_amount(), glm::vec3(0.f, 1.f, 0.f));
@@ -271,8 +227,8 @@ void example_layer::on_render()
 		//render signature
 		const auto text_shader = engine::renderer::shaders_library()->get("text_2D");
 		m_text_manager->render_text(text_shader, "Peter Farkas, 2021", (float)engine::application::window().width() - 210.f, (float)engine::application::window().height() - 25.f, 0.5f, glm::vec4(0.f, 0.f, 0.f, 1.f));
-		//render control toggle text
-		m_text_manager->render_text(text_shader, "Press C to toggle controls", (float)engine::application::window().width() / 2 - 120.f, 10.f, 0.5f, glm::vec4(0.702f, 0.208f, 0.082f, 1.f));
+		//render controls toggle text
+		m_text_manager->render_text(text_shader, "Press C to toggle controls", (float)engine::application::window().width() / 2 - 120.f, 10.f, 0.5f, glm::vec4(0.302f, 0.f, 0.f, 1.f));
 	}
 
 	///////////////////////////////////////////////////////////////////////
@@ -288,20 +244,15 @@ void example_layer::on_render()
 		}
 		engine::renderer::submit(mesh_shader, m_game_skybox, skybox_transform);
 
-		for (auto section : m_terrain) {
-			engine::renderer::submit(mesh_shader, section);
-		}
+		// render terrain
+		engine::renderer::submit(mesh_shader, m_terrain);
 
-		//glm::mat4 gchair_transform(1.f);
-		//gchair_transform = glm::translate(gchair_transform, m_gchair->position());
-		//gchair_transform = glm::scale(gchair_transform, m_gchair->scale());
-		//engine::renderer::submit(mesh_shader, gchair_transform, m_gchair);
-
+		// render toy guns
 		for (int i = 0; i < 8; ++i) {
 			glm::mat4 toygun_transfrom(1.f);
 			toygun_transfrom = glm::translate(toygun_transfrom, glm::vec3(3.f + i, i + 0.5f, 3.f+ i));
 			toygun_transfrom = glm::rotate(toygun_transfrom, (glm::pi<float>() * 2 / 8 * i), glm::vec3(0.f, 1.f, 0.f));
-			toygun_transfrom = glm::scale(toygun_transfrom, m_menu_toygun_r->scale());
+			toygun_transfrom = glm::scale(toygun_transfrom, m_menu_toygun_r->scale() * (1.f / static_cast<float>(i)));
 			engine::renderer::submit(mesh_shader, toygun_transfrom, m_menu_toygun_r);
 		}
 
@@ -322,17 +273,7 @@ void example_layer::on_render()
 		cone_transform = glm::scale(cone_transform, glm::vec3(0.25f));
 		engine::renderer::submit(mesh_shader, cone_transform, m_cone);
 
-		/**m_material->submit(mesh_shader);
-		engine::renderer::submit(mesh_shader, m_ball);**/
-
-		/**m_mannequin_material->submit(mesh_shader);
-		engine::renderer::submit(mesh_shader, m_mannequin);**/
-
 		engine::renderer::end_scene();
-
-		// Render text
-		const auto text_shader = engine::renderer::shaders_library()->get("text_2D");
-		m_text_manager->render_text(text_shader, "Orange Text", 10.f, (float)engine::application::window().height() - 25.f, 0.5f, glm::vec4(1.f, 0.5f, 0.f, 1.f));
 	}
 } 
 
@@ -340,11 +281,14 @@ void example_layer::on_event(engine::event& event)
 { 
     if(event.event_type() == engine::event_type_e::key_pressed) 
     { 
-        auto& e = dynamic_cast<engine::key_pressed_event&>(event); 
+        auto& e = dynamic_cast<engine::key_pressed_event&>(event);
+		// wireframe
 		if (e.key_code() == engine::key_codes::KEY_TAB)
 		{	
 			engine::render_command::toggle_wireframe();
 		}
+
+		// detect player opening menu
 		if (e.key_code() == engine::key_codes::KEY_BACKSPACE)
 		{
 			if (!inMenu)
@@ -352,13 +296,16 @@ void example_layer::on_event(engine::event& event)
 			else
 				inMenu = false;
 		}
-		//menu controls
+
+		// menu controls
 		if(inMenu)
 		{
+			// start game
 			if (e.key_code() == engine::key_codes::KEY_SPACE)
 			{
 				inMenu = false;
 			}
+			// toggle controls
 			if (e.key_code() == engine::key_codes::KEY_C)
 			{
 				if (!showingCtrls)
@@ -369,11 +316,3 @@ void example_layer::on_event(engine::event& event)
 		}
     }
 }
-
-/**void example_layer::check_bounce()
-{
-	if (m_prev_sphere_y_vel < 0.1f && m_ball->velocity().y > 0.1f)
-		//m_audio_manager->play("bounce");
-		m_audio_manager->play_spatialised_sound("bounce", m_3d_camera.position(), glm::vec3(m_ball->position().x, 0.f, m_ball->position().z));
-	m_prev_sphere_y_vel = m_game_objects.at(1)->velocity().y;
-}**/

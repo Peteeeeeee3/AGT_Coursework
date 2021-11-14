@@ -18,6 +18,7 @@ public:
 	{
 		cam.reset(&camera);
 	}**/
+public:
 	player() {}
 	player(engine::perspective_camera& camera);
 	~player() {}
@@ -27,16 +28,28 @@ public:
 
 private:
 	//movement speed
-	float m_mSpeed = 1.f;
+	float m_mSpeed = 8.f;
 	//zoom speed
-	float m_zSpeed = 1.f;
+	float m_zSpeed = m_mSpeed * 3 / 4;
+
 	int health = 100;
-	engine::perspective_camera m_camera;
+
 	glm::vec3 m_position;
 	glm::vec3 m_lookAt;
-	float m_view_distance;
-	float m_current_angle;
-	float m_rotation_speed = glm::pi<float>() / 2;
-	void move(e_direction direction, engine::timestep ts);
-	void rotate(e_direction direction, engine::timestep ts);
+	glm::vec3 z_axis = glm::vec3(0.f, 0.f, 1.f); //stored for convenience
+
+	float m_view_distance; // distance from player to look_at
+	float m_current_angle; // angle from player to z-axis
+	float m_rotation_speed = 0.5f; 
+
+	// defines playable and traversable area
+	std::vector<float> m_camera_bounds{
+		//min	//max
+		-20.f,	20.f,	//x
+		1.f,	20.f,	//y
+		-20.f,	20.f	//z
+	};
+
+	void move(e_direction direction, engine::perspective_camera& camera, engine::timestep ts);
+	void rotate(e_direction direction, engine::perspective_camera& camera, engine::timestep ts);
 };

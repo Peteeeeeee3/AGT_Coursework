@@ -70,7 +70,7 @@ engine::perspective_camera::perspective_camera(
     m_far_plane(far_z) 
 { 
     m_position = glm::vec3(0.0f, 1.0f, 3.0f);  
-    m_front_vector = glm::vec3(0.0f, 0.0f, -1.0f);
+    m_front_vector = glm::vec3(0.0f, 0.0f, 1.0f);
     m_up_vector = glm::vec3(0.0f, 1.0f,  0.0f);
     m_view_mat = glm::lookAt(m_position, m_position + m_front_vector, m_up_vector);
 
@@ -90,12 +90,15 @@ engine::perspective_camera::perspective_camera(
 
 void engine::perspective_camera::on_update(const timestep& timestep)
 {
-	auto [mouse_delta_x, mouse_delta_y] = input::mouse_position();
-	process_mouse(mouse_delta_x, mouse_delta_y);
+    // commented out interfering code
+
+	//auto [mouse_delta_x, mouse_delta_y] = input::mouse_position();
+	//process_mouse(mouse_delta_x, mouse_delta_y);
 
 	update_camera_vectors();
+    //update_view_matrix();
 
-    if(input::key_pressed(engine::key_codes::KEY_A)) // left
+    /**if(input::key_pressed(engine::key_codes::KEY_A)) // left
         move(e_direction::left, timestep);
     else if(input::key_pressed(engine::key_codes::KEY_D)) // right
         move(e_direction::right, timestep);
@@ -103,7 +106,7 @@ void engine::perspective_camera::on_update(const timestep& timestep)
     if(input::key_pressed(engine::key_codes::KEY_S)) // down
         move(e_direction::backward, timestep);
     else if(input::key_pressed(engine::key_codes::KEY_W)) // up
-        move(e_direction::forward, timestep);
+        move(e_direction::forward, timestep);**/
 }
 
 const glm::mat4& engine::perspective_camera::projection_matrix() const 
@@ -207,9 +210,8 @@ void engine::perspective_camera::update_view_matrix()
 
     // inverting the transform matrix  
     //m_view_mat = glm::inverse(transform);
-    glm::vec3 center = m_position + m_front_vector;
     //center.y = 0.f;
-    m_view_mat = glm::lookAt(m_position, /**m_position + m_front_vector**/center, m_up_vector);
+    m_view_mat = glm::lookAt(m_position, m_position + m_front_vector, m_up_vector);
     m_view_projection_mat = m_projection_mat * m_view_mat; 
 }
 
@@ -231,7 +233,7 @@ void engine::perspective_camera::update_camera_vectors()
     front.y = sin(pitch_radians);
     front.z = sin(yaw_radians) * cos(pitch_radians);
 
-    m_front_vector = glm::normalize(front);
+    m_front_vector += glm::normalize(front);
     // Also re-calculate the Right and Up vector
     // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
     m_right_vector = glm::normalize(glm::cross(m_front_vector, m_world_up_vector));  

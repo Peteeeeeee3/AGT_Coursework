@@ -18,9 +18,8 @@ private:
 
 	engine::ref<engine::skybox>			m_game_skybox{};
 	engine::ref<engine::skybox>			m_menu_skybox{};
-	std::vector<engine::ref<engine::game_object>>	m_terrain{};
+	engine::ref<engine::game_object>	m_terrain{};
 	engine::ref<engine::game_object>	m_cone{};
-	//engine::ref<engine::game_object> m_gchair{};
 
 	//menu componenets
 	engine::ref<tower>					m_menu_toygun_r{};
@@ -33,8 +32,6 @@ private:
 	glm::vec3							m_menu_inactive_pos = glm::vec3(0.f, 5.5f, -15.f);
 
 	player m_player;
-	//engine::ref<engine::game_object>	m_ball{};
-	//engine::ref<engine::game_object>	m_mannequin{};
 
 	engine::ref<engine::material>		m_material{};
 	engine::ref<engine::material>		m_mannequin_material{};

@@ -1,11 +1,28 @@
-http://www.humus.name/index.php?page=Textures&start=112
+Texture(s):
 Wood
-
 W hotel
 
-path.png from:
-https://opengameart.org/content/seamless-snow-texture-0
-originally "snow01.png"
+Source:
+http://www.humus.name/index.php?page=Textures&start=112
 
-wizard hat:
-https://imgur.com/a/F98un
+Texture(s):
+control_text
+game_title
+temp_text
+wizard_hat
+
+Souce:
+Peter Farkas, November 2021
+
+Texture(s):
+Terrain
+Outdoor skybox
+
+Source:
+Used from tutorials
+
+Texture(s):
+path
+
+Source:
+https://opengameart.org/content/seamless-snow-texture-0

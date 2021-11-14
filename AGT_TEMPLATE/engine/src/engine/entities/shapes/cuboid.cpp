@@ -9,6 +9,7 @@ engine::cuboid::cuboid(glm::vec3 half_extents, bool inwards, bool isRepeated) : 
 		orientation = -1;
 	std::vector<mesh::vertex> cuboid_vertices;
 
+	// check whether texture should be repeasted or stretched/scaled
 	if (!isRepeated)
 	{
 		cuboid_vertices = std::vector<mesh::vertex>
