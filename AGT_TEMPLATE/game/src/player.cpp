@@ -148,7 +148,7 @@ void player::rotate(e_direction direction, engine::perspective_camera& camera, e
 	
 	// apply new position
 	m_position = glm::vec3(x, m_position.y, z);
-	//std::cout << m_position << "\n";
+	std::cout << m_position << "\n";
 	/**
 	if (direction == right)
 	{
