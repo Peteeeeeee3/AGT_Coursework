@@ -134,12 +134,16 @@
     <ClInclude Include="src\example_layer.h" />
     <ClInclude Include="src\player.h" />
     <ClInclude Include="src\tower.h" />
+    <ClInclude Include="src\toygun.h" />
+    <ClInclude Include="src\wizard_hat.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\example_layer.cpp" />
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\player.cpp" />
     <ClCompile Include="src\tower.cpp" />
+    <ClCompile Include="src\toygun.cpp" />
+    <ClCompile Include="src\wizard_hat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\engine\engine.vcxproj">

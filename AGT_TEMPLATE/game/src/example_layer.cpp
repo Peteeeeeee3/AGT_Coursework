@@ -7,6 +7,7 @@
 #include "engine/utils/track.h"
 #include "player.h"
 #include "tower.h"
+#include "toygun.h"
 #include "engine/entities/shapes/cone.h"
 
 example_layer::example_layer() 
@@ -73,6 +74,8 @@ example_layer::example_layer()
 	//create player object
 	m_player = player(m_3d_camera);
 
+	m_path_material = engine::material::create(32.0f, glm::vec3(1.0f, 0.5f, 0.0f), glm::vec3(1.0f, 0.5f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 0.3f);
+
 	// Load the terrain texture and create a terrain mesh. Create a terrain object. Set its properties
 	std::vector<engine::ref<engine::texture_2d>> terrain_textures = { engine::texture_2d::create("assets/textures/Wood.jpg", false) };
 	engine::ref<engine::terrain> terrain_shape = engine::terrain::create(100.f, 0.1f, 100.f);
@@ -86,6 +89,9 @@ example_layer::example_layer()
 	terrain_props.position = glm::vec3(0.f, 0.0f, 0.f);
 	m_terrain = engine::game_object::create(terrain_props);
 
+	// load path
+	init_path();
+
 	// load toy gun model and create object. set its properties
 	engine::ref<engine::model> toygun_model = engine::model::create("assets/models/static/Toy_Gun/handgun-lo.obj");
 	engine::game_object_properties toygun_props;
@@ -95,9 +101,9 @@ example_layer::example_layer()
 	toygun_props.position = { -3.f, 3.f, 8.f };
 	toygun_props.scale = glm::vec3(toygun_scale);
 	toygun_props.bounding_shape = toygun_model->size() / 2.f * toygun_scale;
-	m_menu_toygun_r = tower::create(toygun_props);
+	m_menu_toygun_r = toygun::create(toygun_props);
 	toygun_props.position = { 3.f, 3.f, 8.f };
-	m_menu_toygun_l = tower::create(toygun_props);
+	m_menu_toygun_l = toygun::create(toygun_props);
 
 	//menu text 
 	engine::ref<engine::cuboid> container_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, 0.5f), false, false);
@@ -133,7 +139,7 @@ example_layer::example_layer()
 	m_cone = engine::game_object::create(cone_props);
 
 	m_game_objects.push_back(m_terrain);
-
+	
 	m_physics_manager = engine::bullet_manager::create(m_game_objects);
 
 	m_text_manager = engine::text_manager::create();
@@ -152,8 +158,8 @@ void example_layer::on_update(const engine::timestep& time_step)
 		m_3d_camera.set_view_matrix(glm::vec3(0.f, 5.f, 0.f), glm::vec3(0.f, 5.f, 1.f));
 
 		//update guns for rotation
-		m_menu_toygun_r->update(true, time_step);
-		m_menu_toygun_l->update(false, time_step);
+		m_menu_toygun_r->rotate(true, time_step);
+		m_menu_toygun_l->rotate(false, time_step);
 
 		// position correct cuboid before player
 		if (showingCtrls)
@@ -258,8 +264,15 @@ void example_layer::on_render()
 
 		//hat 1
 		glm::mat4 cone_transform(1.0f);
-		cone_transform = glm::scale(cone_transform, glm::vec3(0.5f));
+		cone_transform = glm::scale(cone_transform, glm::vec3(0.25f));
 		engine::renderer::submit(mesh_shader, cone_transform, m_cone);
+
+		for (auto position : m_checkpoints)
+		{
+			cone_transform = glm::translate(cone_transform, position);
+			cone_transform = glm::scale(cone_transform, glm::vec3(1));
+			engine::renderer::submit(mesh_shader, cone_transform, m_cone);
+		}
 
 		//hat 2
 		cone_transform = glm::translate(cone_transform, glm::vec3(5.f, 5.f, 5.f));
@@ -272,6 +285,9 @@ void example_layer::on_render()
 		cone_transform = glm::rotate(cone_transform, glm::pi<float>() / 2, glm::vec3(0.f, 1.f, 1.f));
 		cone_transform = glm::scale(cone_transform, glm::vec3(0.25f));
 		engine::renderer::submit(mesh_shader, cone_transform, m_cone);
+
+		//render path
+		draw_path(mesh_shader);
 
 		engine::renderer::end_scene();
 	}
@@ -315,4 +331,49 @@ void example_layer::on_event(engine::event& event)
 			}
 		}
     }
+}
+
+void example_layer::init_path()
+{
+	for (int i = 0; i < m_pp_positions.size() - 2; ++i)
+	{
+		// section 1 - 2
+		glm::vec3 size = glm::vec3(fabs(m_checkpoints[i + 1].x - m_checkpoints[i].x), 1.f, fabs(m_checkpoints[i + 1].z - m_checkpoints[i].z));
+		if (size.x == 0.f)
+			size.x += 2.f;
+		if (size.z == 0.f)
+			size.z += 2.f;
+		engine::ref<engine::cuboid> path_shape = engine::cuboid::create(size, false, true);
+		//engine::ref<engine::texture_2d> path_texture = engine::texture_2d::create("assets/textures/path.png", true);
+		engine::game_object_properties path_props;
+		path_props.position = m_pp_positions[i];
+		path_props.meshes = { path_shape->mesh() };
+		path_props.scale = glm::vec3(1);
+		//path_props.textures = { path_texture };
+		path_props.restitution = 0.92f;
+		engine::ref<engine::game_object> path_piece = engine::game_object::create(path_props);
+		m_path.push_back(path_piece);
+	}
+
+	// section 2 - 3
+
+	// section 3 - 4
+
+	// section 4 - 5
+
+	// section 5 - 6
+
+	// section 6 - 7
+
+	// section 7 - 8
+}
+
+void example_layer::draw_path(const engine::ref<engine::shader>& shader)
+{
+	for (auto piece : m_path)
+	{
+		m_path_material->submit(shader);
+		engine::renderer::submit(shader, piece);
+	}
+
 }
