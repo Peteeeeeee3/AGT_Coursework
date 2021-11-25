@@ -1,9 +1,17 @@
+// _____		 _____   _____   _____    _   __  _____   _____
+//|  _  |		|  ___|	|  _  | |  _  |  | | / / |  _  | |  ___|
+//| |_| |		| |___	| |_| | | |_| |  | |/ /  | |_| | | |___ 
+//|  ___|		|  ___|	|  _  | |  _  |  |   |   |  _  | |___  | 
+//| |		_   | |		| | | | | | \ \  | |\ \  | | | |  ___| |
+//|_|	   |_|  |_|		|_| |_| |_|  \_\ |_| \_\ |_| |_| |_____|
+
 #pragma once
 #include <engine.h>
 #include "player.h"
 #include "tower.h"
 #include "toygun.h"
 #include "wizard_hat.h"
+#include "enemy.h"
 
 class example_layer : public engine::layer
 {
@@ -23,23 +31,19 @@ private:
 	engine::ref<engine::game_object>	m_terrain{};
 	engine::ref<engine::game_object>	m_cone{};
 
-	//path
-	std::vector<engine::ref<engine::game_object>>	m_path;
-
 	//menu componenets
 	engine::ref<toygun>					m_menu_toygun_r{};
 	engine::ref<toygun>					m_menu_toygun_l{};
 	engine::ref<engine::game_object>	m_menu_text{};
 	engine::ref<engine::game_object>	m_menu_controls{};
-	bool inMenu = true;
-	bool showingCtrls = false;
+	bool								inMenu = true;
+	bool								showingCtrls = false;
 	glm::vec3							m_menu_active_pos = glm::vec3(0.f, 5.5f, 10.f);
 	glm::vec3							m_menu_inactive_pos = glm::vec3(0.f, 5.5f, -15.f);
 
 	player m_player;
 
 	engine::ref<engine::material>		m_material{};
-	engine::ref<engine::material>		m_mannequin_material{};
 
 	engine::DirectionalLight            m_directionalLight;
 
@@ -57,28 +61,44 @@ private:
 	//path of enemies
 	/////////////////
 
+	//path
+	std::vector<engine::ref<engine::game_object>>	m_path;
+
 	//checkpoints
-	std::vector<glm::vec3> m_checkpoints =
+	std::vector<glm::vec3>				m_checkpoints =
 	{
 		// point 1						point 2							point 3							point 4
-		glm::vec3(-20.f, 0.f, 0.f),		glm::vec3(-15.f, 0.f, 0.f),		glm::vec3(-15.f, 0.f, -5.f),	glm::vec3(0.f, 0.f, -5.f),
+		glm::vec3(-20.f, 0.f, 0.f),		glm::vec3(-15.f, 0.f, 0.f),		glm::vec3(-15.f, 0.f, 5.f),		glm::vec3(0.f, 0.f, 5.f),
 
 		// point 5						point 6							point 7							point 8
-		glm::vec3(0.f, 0.f, 15.f),		glm::vec3(10.f, 0.f, 15.f),		glm::vec3(10.f, 0.f, 0.f),		glm::vec3(20.f, 0.f, 0.f)
+		glm::vec3(0.f, 0.f, -10.f),		glm::vec3(10.f, 0.f, -10.f),	glm::vec3(10.f, 0.f, 0.f),		glm::vec3(20.f, 0.f, 0.f)
 	};
 
 	//path piece positions
-	std::vector<glm::vec3> m_pp_positions =
+	std::vector<glm::vec3>				m_pp_positions =
 	{
 		// piece 1							// piece 2							// piece 3							// piece 4
-		glm::vec3(-17.5f, -0.75f, 0.f),		glm::vec3(-15.f, -0.75f, -2.5f),	glm::vec3(-7.5f, -0.75f, -5.f),		glm::vec3(0.f, -0.75f, 5.f),
+		glm::vec3(-17.5f, -0.75f, 0.f),		glm::vec3(-15.f, -0.75f, -2.5f),	glm::vec3(-7.5f, -0.75f, -5.f),		glm::vec3(0.f, -0.75f, 2.5f),
 
 		// piece 5							// piece 6							// piece 7
-		glm::vec3(5.f, -0.75f, 15.f),		glm::vec3(10.f, -0.75f, 7.5f),		glm::vec3(15.f, -0.75, 0.f)
+		glm::vec3(5.f, -0.75f, 10.f),		glm::vec3(10.f, -0.75f, 5.f),		glm::vec3(15.f, -0.75, 0.f)
 	};
 
 	engine::ref<engine::material>		m_path_material{};
 
 	void init_path();
 	void draw_path(const engine::ref<engine::shader>& shader);
+
+	////////////////
+	//handling waves
+	////////////////
+	engine::ref<engine::skinned_mesh>	m_skinned_mesh{};
+	engine::ref<engine::material>		m_mannequin_material{};
+	engine::game_object_properties		m_mannequin_props;
+
+	std::vector<engine::ref<enemy>>	m_active_enemies;
+
+	void new_wave();
+	int m_enemy_count = 1;
+	int m_wave_number = 1;
 };
