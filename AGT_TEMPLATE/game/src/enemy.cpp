@@ -12,8 +12,6 @@ void enemy::update(player& player, std::vector<glm::vec3> checkpoints, float dt)
 	if (m_health <= 0)
 		enemy::~enemy();
 
-	std::cout << position() << "\n" << m_location_state << "\n";
-
 	if (m_location_state == START)
 	{
 		set_rotation_amount(glm::pi<float>() / 2);
@@ -31,43 +29,43 @@ void enemy::update(player& player, std::vector<glm::vec3> checkpoints, float dt)
 	else if (m_location_state == TWO)
 	{
 		set_rotation_amount(glm::pi<float>());
-		set_position(position() - glm::normalize(checkpoints[2] - position()) * dt * m_speed);
-		if (position().x >= checkpoints[2].x && position().z <= checkpoints[2].z)
+		set_position(position() + glm::normalize(checkpoints[2] - position()) * dt * m_speed);
+		if (position().z <= checkpoints[2].z)
 			m_location_state = THREE;
 	}
 	else if (m_location_state == THREE)
 	{
 		set_rotation_amount(glm::pi<float>() / 2);
 		set_position(position() + glm::normalize(checkpoints[3] - position()) * dt * m_speed);
-		if (position().x <= checkpoints[3].x && position().z >= checkpoints[3].z)
+		if (position().x >= checkpoints[3].x)
 			m_location_state = FOUR;
 	}
 	else if (m_location_state == FOUR)
 	{
 		set_rotation_amount(0.f);
 		set_position(position() + glm::normalize(checkpoints[4] - position()) * dt * m_speed);
-		if (position().x >= checkpoints[4].x && position().z == checkpoints[4].z)
+		if (position().z >= checkpoints[4].z)
 			m_location_state = FIVE;
 	}
 	else if (m_location_state == FIVE)
 	{
 		set_rotation_amount(glm::pi<float>() / 2);
 		set_position(position() + glm::normalize(checkpoints[5] - position()) * dt * m_speed);
-		if (position().x >= checkpoints[5].x && position().z == checkpoints[5].z)
+		if (position().x >= checkpoints[5].x)
 			m_location_state = SIX;
 	}
 	else if (m_location_state == SIX)
 	{
 			set_rotation_amount(glm::pi<float>());
 			set_position(position() + glm::normalize(checkpoints[6] - position()) * dt * m_speed);
-			if (position().x >= checkpoints[6].x && position().z == checkpoints[6].z)
+			if (position().z <= checkpoints[6].z)
 				m_location_state = SEVEN;
 	}
 	else if (m_location_state == SEVEN)
 	{
 			set_rotation_amount(glm::pi<float>() / 2);
 			set_position(position() + glm::normalize(checkpoints[7] - position()) * dt * m_speed);
-			if (position().x >= checkpoints[7].x && position().z == checkpoints[7].z)
+			if (position().x >= checkpoints[7].x)
 				m_location_state = FINISH;
 	}
 	else if (m_location_state == FINISH)

@@ -401,7 +401,6 @@ void example_layer::draw_path(const engine::ref<engine::shader>& shader)
 		m_path_material->submit(shader);
 		engine::renderer::submit(shader, piece);
 	}
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -418,7 +417,7 @@ void example_layer::new_wave()
 	}
 
 	for (int itr = 0; itr < m_enemy_count; ++itr)
-	{
+	{	
 		m_active_enemies.push_back(enemy::create(m_mannequin_props, 100.f, 5.f, 1.f));
 	}
 }

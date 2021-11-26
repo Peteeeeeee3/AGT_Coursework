@@ -67,7 +67,9 @@ engine::perspective_camera::perspective_camera(
     m_aspect_ratio(width / height), 
     m_fov(fov), 
     m_near_plane(near_z), 
-    m_far_plane(far_z) 
+    m_far_plane(far_z),
+    m_width(width),
+    m_height(height)
 { 
     m_position = glm::vec3(0.0f, 1.0f, 3.0f);  
     m_front_vector = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -92,7 +94,8 @@ void engine::perspective_camera::on_update(const timestep& timestep)
 {
     // commented out interfering code
 
-	//auto [mouse_delta_x, mouse_delta_y] = input::mouse_position();
+	auto [mouse_delta_x, mouse_delta_y] = input::mouse_position();
+    std::cout << mouse_delta_x << " " << mouse_delta_y << "\n";
 	//process_mouse(mouse_delta_x, mouse_delta_y);
 
 	update_camera_vectors();
@@ -130,7 +133,7 @@ void engine::perspective_camera::process_mouse(float mouse_delta_x, float mouse_
     mouse_delta_x *= s_mouse_sensitivity;
     mouse_delta_y *= s_mouse_sensitivity;
 
-    m_yaw   += mouse_delta_x;
+    /*m_yaw   += mouse_delta_x;
     m_pitch += mouse_delta_y;
 
     // Make sure that when pitch is out of bounds, screen doesn't get flipped
@@ -141,7 +144,7 @@ void engine::perspective_camera::process_mouse(float mouse_delta_x, float mouse_
             m_pitch = pitch_limit;
         if(m_pitch < -pitch_limit)
             m_pitch = -pitch_limit;
-    }
+    }*/
 }
 
 void engine::perspective_camera::move(e_direction direction, timestep ts) 
@@ -239,4 +242,14 @@ void engine::perspective_camera::update_camera_vectors()
     m_right_vector = glm::normalize(glm::cross(m_front_vector, m_world_up_vector));  
     m_up_vector   = glm::normalize(glm::cross(m_right_vector, m_front_vector));
     update_view_matrix();
+}
+
+//https://antongerdelan.net/opengl/raycasting.html
+void engine::perspective_camera::raycast_mouse(float pxlcord_x, float pxlcord_y)
+{
+    glm::vec4 ray_eye = glm::inverse(projection_matrix()) * glm::vec4((2.0f * pxlcord_x) / m_width - 1.f, 1.f - (2.f * pxlcord_y) / m_height, -1.f, 1.f);
+    glm::vec3 ray = glm::normalize(glm::inverse(view_matrix()) * glm::vec4(ray_eye.x, ray_eye.y, -1.f, 0.f));
+
+    //keep track of towers and any other interactables
+    //also have some hit boxes for behind the tower placement selection
 }

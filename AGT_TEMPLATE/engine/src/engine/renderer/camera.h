@@ -147,7 +147,8 @@ namespace engine
         void process_mouse(float mouse_delta_x, float mouse_delta_y, bool constrain_pitch = true);
         void move(e_direction direction, timestep ts); 
         void update_camera_vectors();
-        void update_view_matrix(); 
+        void update_view_matrix();
+        void raycast_mouse(float pxlcord_x, float pxlcord_y);
 
     private: 
         glm::mat4   m_projection_mat{1}; 
@@ -174,7 +175,11 @@ namespace engine
         /// \brief Near clipping plane. 
         float m_near_plane = 0.1f; 
         /// \brief ar clipping plane. 
-        float m_far_plane = 100.f; 
+        float m_far_plane = 100.f;
+        // screen width (for ray casting)
+        float m_width;
+        // screen height (for ray casting)
+        float m_height;
 
         /// \brief in units per seconds. 
         inline static float s_movement_speed = SPEED; 

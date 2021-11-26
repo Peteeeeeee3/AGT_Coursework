@@ -12,7 +12,7 @@ namespace engine
 		uint32_t triangles() const { return m_triangles; }
 		float radius() const { return m_radius; }
 		float height() const { return m_height; }
-		ref<engine::mesh> mesh() const { return m_mesh; }
+		ref<mesh> mesh() const { return m_mesh; }
 
 		static ref<cone> create(uint32_t triangles, float height, float radius, glm::vec3 center);
 

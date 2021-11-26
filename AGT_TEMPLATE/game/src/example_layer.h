@@ -68,10 +68,10 @@ private:
 	std::vector<glm::vec3>				m_checkpoints =
 	{
 		// point 1						point 2							point 3							point 4
-		glm::vec3(-20.f, 0.f, 0.f),		glm::vec3(-15.f, 0.f, 0.f),		glm::vec3(-15.f, 0.f, 5.f),		glm::vec3(0.f, 0.f, 5.f),
+		glm::vec3(-20.f, 0.f, 0.f),		glm::vec3(-15.f, 0.f, 0.f),		glm::vec3(-15.f, 0.f, -5.f),	glm::vec3(0.f, 0.f, -5.f),
 
 		// point 5						point 6							point 7							point 8
-		glm::vec3(0.f, 0.f, -10.f),		glm::vec3(10.f, 0.f, -10.f),	glm::vec3(10.f, 0.f, 0.f),		glm::vec3(20.f, 0.f, 0.f)
+		glm::vec3(0.f, 0.f, 10.f),		glm::vec3(10.f, 0.f, 10.f),		glm::vec3(10.f, 0.f, 0.f),		glm::vec3(20.f, 0.f, 0.f)
 	};
 
 	//path piece positions
