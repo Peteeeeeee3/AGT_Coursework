@@ -25,6 +25,8 @@ public:
 	void on_update(const engine::timestep& time_step);
 	void update_camera(engine::perspective_camera& camera, const engine::timestep& ts);
 	void damage(float dmg) { health -= dmg; }
+	float score() { return m_score; }
+	void set_score(float ns) { m_score = ns; }
 	//void scroll_handling(const engine::timestep& time_step);
 
 private:
@@ -32,8 +34,11 @@ private:
 	float m_mSpeed = 8.f;
 	//zoom speed
 	float m_zSpeed = m_mSpeed * 3 / 4;
-
+	//player health
 	float health = 100;
+	//player score
+	float m_score = 1000;
+
 
 	glm::vec3 m_position;
 	glm::vec3 m_lookAt;

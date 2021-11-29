@@ -10,6 +10,7 @@
 #include "toygun.h"
 #include "enemy.h"
 #include "engine/entities/shapes/cone.h"
+#include "quad.h"
 
 example_layer::example_layer() 
     :m_2d_camera(-1.6f, 1.6f, -0.9f, 0.9f), 
@@ -54,6 +55,8 @@ example_layer::example_layer()
 		glm::vec3(1.0f, 0.1f, 0.07f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f);
 	m_mannequin_material = engine::material::create(1.0f, glm::vec3(0.5f, 0.5f, 0.5f),
 		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f);
+	m_guardian_material = engine::material::create(1.0f, glm::vec3(0.5f, 0.5f, 0.5f),
+		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f);
 
 	// Skybox texture from http://www.vwall.it/wp-content/plugins/canvasio3dpro/inc/resource/cubeMaps/
 	m_menu_skybox = engine::skybox::create(50.f,
@@ -74,6 +77,7 @@ example_layer::example_layer()
 		  engine::texture_2d::create("assets/textures/skybox/negy.jpg", true)
 		});
 
+	//mannequin animations
 	m_skinned_mesh = engine::skinned_mesh::create("assets/models/animated/mannequin/free3Dmodel.dae");
 	m_skinned_mesh->LoadAnimationFile("assets/models/animated/mannequin/walking.dae");
 	m_skinned_mesh->LoadAnimationFile("assets/models/animated/mannequin/idle.dae");
@@ -81,10 +85,18 @@ example_layer::example_layer()
 	m_skinned_mesh->LoadAnimationFile("assets/models/animated/mannequin/standard_run.dae");
 	m_skinned_mesh->switch_root_movement(false);
 
+	//forrest guard animations
+	m_guardian_mesh = engine::skinned_mesh::create("assets/models/animated/forrest_guard/Mesh/Mesh.FBX");
+	m_guardian_mesh->LoadAnimationFile("assets/models/animated/forrest_guard/animation/forest_guard@walk.FBX");
+	m_guardian_mesh->LoadAnimationFile("assets/models/animated/forrest_guard/animation/forest_guard@run.FBX");
+	m_guardian_mesh->LoadAnimationFile("assets/models/animated/forrest_guard/animation/forest_guard@get_hit_block.FBX");
+	m_guardian_mesh->switch_root_movement(false);
+
 	//create player object
 	m_player = player(m_3d_camera);
 
-	m_path_material = engine::material::create(32.0f, glm::vec3(1.0f, 0.5f, 0.0f), glm::vec3(1.0f, 0.5f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 0.3f);
+	m_path_material = engine::material::create(1.0f, glm::vec3(1.0f, 1.f, 1.f),
+		glm::vec3(1.0f, 1.f, 1.f), glm::vec3(0.5f, 0.5f, 0.5f), .5f);
 
 	// Load the terrain texture and create a terrain mesh. Create a terrain object. Set its properties
 	std::vector<engine::ref<engine::texture_2d>> terrain_textures = { engine::texture_2d::create("assets/textures/Wood.jpg", false) };
@@ -99,8 +111,11 @@ example_layer::example_layer()
 	terrain_props.position = glm::vec3(0.f, 0.0f, 0.f);
 	m_terrain = engine::game_object::create(terrain_props);
 
-	// load path
+	// initialize path
 	init_path();
+
+	//initialize hud
+	hud_init();
 
 	//set mannerquin properties
 	m_mannequin_props.animated_mesh = m_skinned_mesh;
@@ -108,6 +123,13 @@ example_layer::example_layer()
 	m_mannequin_props.position = glm::vec3(-25.f, 0.f, 0.f);
 	m_mannequin_props.type = 0;
 	m_mannequin_props.bounding_shape = m_skinned_mesh->size() / 2.f * m_mannequin_props.scale.x;
+
+	//set guardian properties
+	m_guardian_props.animated_mesh = m_guardian_mesh;
+	m_guardian_props.scale = glm::vec3(1.f / glm::max(m_guardian_mesh->size().x, glm::max(m_guardian_mesh->size().y, m_guardian_mesh->size().z)));
+	m_guardian_props.position = glm::vec3(-25.f, 0.f, 0.f);
+	m_guardian_props.type = 0;
+	m_guardian_props.bounding_shape = m_guardian_mesh->size() / 2.f * m_guardian_props.scale.x;
 
 	// load toy gun model and create object. set its properties
 	engine::ref<engine::model> toygun_model = engine::model::create("assets/models/static/Toy_Gun/handgun-lo.obj");
@@ -164,6 +186,7 @@ example_layer::example_layer()
 	m_3d_camera.set_view_matrix(glm::vec3(0.f, 10.f, 0.f), glm::vec3(-5.f, 0.f, -5.f));
 
 	m_skinned_mesh->switch_animation(1);
+	m_guardian_mesh->switch_animation(1);
 }
 
 example_layer::~example_layer() {}
@@ -310,7 +333,10 @@ void example_layer::on_render()
 		{
 			for (auto enemy : m_active_enemies)
 			{
-				m_mannequin_material->submit(mesh_shader);
+				if (enemy->type() == enemy::e_type::REG)
+					m_mannequin_material->submit(mesh_shader);
+				if (enemy->type() == enemy::e_type::GUARD)
+					m_guardian_material->submit(mesh_shader);
 				engine::renderer::submit(mesh_shader, enemy);
 			}
 		}
@@ -319,6 +345,9 @@ void example_layer::on_render()
 		draw_path(mesh_shader);
 
 		engine::renderer::end_scene();
+
+		//render hud
+		hud_on_render(mesh_shader);
 	}
 } 
 
@@ -418,6 +447,97 @@ void example_layer::new_wave()
 
 	for (int itr = 0; itr < m_enemy_count; ++itr)
 	{	
-		m_active_enemies.push_back(enemy::create(m_mannequin_props, 100.f, 5.f, 1.f));
+		m_active_enemies.push_back(enemy::create(m_mannequin_props, 100.f, 5.f, 1.f, enemy::e_type::REG));
+		m_active_enemies.push_back(enemy::create(m_guardian_props, 50.f, 5.f, 5.f, enemy::e_type::GUARD));
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//HUD
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void example_layer::hud_on_render(engine::ref<engine::shader> shader)
+{
+	//render score
+	const auto text_shader = engine::renderer::shaders_library()->get("text_2D");
+	m_text_manager->render_text(text_shader, "Score: " + std::to_string((int) m_player.score()), (float)engine::application::window().width() / 2.f - 90.f, (float)engine::application::window().height() - 40.f, .75f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+
+	engine::renderer::begin_scene(m_2d_camera, shader);
+	////////////////
+	//render buttons
+	////////////////
+
+	//toy gun
+	glm::mat4 tg_transform(1.f);
+	tg_transform = glm::translate(tg_transform, glm::vec3(1.4f, 0.2f, 0.1f));
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", .3f);
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+	m_button_bkgrnd->bind();
+	engine::renderer::submit(shader, m_toygun_bkgrnd->mesh(), tg_transform);
+
+	//wizard hat
+	glm::mat4 wh_transform(1.f);
+	wh_transform = glm::translate(wh_transform, glm::vec3(1.4f, 0.f, 0.1f));
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", .3f);
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+	m_button_bkgrnd->bind();
+	engine::renderer::submit(shader, m_wizardhat_bkgrnd->mesh(), wh_transform);
+
+	//candle
+	glm::mat4 c_transform(1.f);
+	c_transform = glm::translate(c_transform, glm::vec3(1.4f, -0.2f, 0.1f));
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", .3f);
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+	m_button_bkgrnd->bind();
+	engine::renderer::submit(shader, m_candle_bkgrnd->mesh(), c_transform);
+
+	////////////////
+	//render icons
+	////////////////
+
+	//toy gun
+	glm::mat4 icon_tg_tranform(1.f);
+	icon_tg_tranform = glm::translate(icon_tg_tranform, glm::vec3(1.4f, 0.2f, 0.2f));
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", 1.f);
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+	m_toygun_icon->bind();
+	engine::renderer::submit(shader, m_toygun_btn->mesh(), icon_tg_tranform);
+
+	//wizard hat
+	glm::mat4 icon_wh_transform(1.f);
+	icon_wh_transform = glm::translate(icon_wh_transform, glm::vec3(1.4f, 0.f, 0.2f));
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", 1.f);
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+	m_wizardhat_icon->bind();
+	engine::renderer::submit(shader, m_wizardhat_btn->mesh(), icon_wh_transform);
+
+	//candle
+	glm::mat4 icon_c_transform(1.f);
+	icon_c_transform = glm::translate(icon_c_transform, glm::vec3(1.4f, -0.2f, 0.2f));
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", 1.f);
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+	m_candle_icon->bind();
+
+
+	engine::renderer::end_scene();
+}
+
+void example_layer::hud_init()
+{
+	//intialize button background
+	m_button_bkgrnd = engine::texture_2d::create("assets/textures/button_background.png", true);
+
+	//initialize icons
+	m_wizardhat_icon = engine::texture_2d::create("assets/textures/wizhat_icon.png", true);
+	m_toygun_icon = engine::texture_2d::create("assets/textures/toygun_icon.png", true);
+	m_candle_icon = engine::texture_2d::create("assets/textures/toygun_icon.png", true);
+
+	//create buttons
+	m_wizardhat_btn = quad::create(glm::vec2(0.08f, 0.08f));
+	m_toygun_btn = quad::create(glm::vec2(0.08f, 0.08f));
+	m_candle_btn = quad::create(glm::vec2(0.08f, 0.08f));
+
+	//create backgrounds
+	m_wizardhat_bkgrnd = quad::create(glm::vec2(0.08f, 0.08f));
+	m_toygun_bkgrnd = quad::create(glm::vec2(0.08f, 0.08f));
+	m_candle_bkgrnd = quad::create(glm::vec2(0.08f, 0.08f));
 }

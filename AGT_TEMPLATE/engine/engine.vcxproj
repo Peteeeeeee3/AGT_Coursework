@@ -547,7 +547,9 @@ IF EXIST ..\engine\external\FMOD\lib\x64\fmod.dll\ (xcopy /Q /E /Y /I ..\engine\
     <ClInclude Include="src\engine\entities\shapes\circle.h" />
     <ClInclude Include="src\engine\entities\shapes\cone.h" />
     <ClInclude Include="src\engine\entities\shapes\cuboid.h" />
+    <ClInclude Include="src\engine\entities\shapes\cylinder.h" />
     <ClInclude Include="src\engine\entities\shapes\heightmap.h" />
+    <ClInclude Include="src\engine\entities\shapes\pentahedron.h" />
     <ClInclude Include="src\engine\entities\shapes\sphere.h" />
     <ClInclude Include="src\engine\entities\skybox.h" />
     <ClInclude Include="src\engine\entities\terrain.h" />
@@ -606,7 +608,9 @@ IF EXIST ..\engine\external\FMOD\lib\x64\fmod.dll\ (xcopy /Q /E /Y /I ..\engine\
     <ClCompile Include="src\engine\entities\shapes\circle.cpp" />
     <ClCompile Include="src\engine\entities\shapes\cone.cpp" />
     <ClCompile Include="src\engine\entities\shapes\cuboid.cpp" />
+    <ClCompile Include="src\engine\entities\shapes\cylinder.cpp" />
     <ClCompile Include="src\engine\entities\shapes\heightmap.cpp" />
+    <ClCompile Include="src\engine\entities\shapes\pentahedron.cpp" />
     <ClCompile Include="src\engine\entities\shapes\sphere.cpp" />
     <ClCompile Include="src\engine\entities\skybox.cpp" />
     <ClCompile Include="src\engine\entities\terrain.cpp" />

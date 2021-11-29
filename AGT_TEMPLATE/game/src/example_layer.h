@@ -12,6 +12,7 @@
 #include "toygun.h"
 #include "wizard_hat.h"
 #include "enemy.h"
+#include "quad.h"
 
 class example_layer : public engine::layer
 {
@@ -78,10 +79,10 @@ private:
 	std::vector<glm::vec3>				m_pp_positions =
 	{
 		// piece 1							// piece 2							// piece 3							// piece 4
-		glm::vec3(-17.5f, -0.75f, 0.f),		glm::vec3(-15.f, -0.75f, -2.5f),	glm::vec3(-7.5f, -0.75f, -5.f),		glm::vec3(0.f, -0.75f, 2.5f),
+		glm::vec3(-17.5f, -0.75f, 0.f),		glm::vec3(-15.f, -0.7501f, -2.5f),	glm::vec3(-7.5f, -0.75f, -5.f),		glm::vec3(0.f, -0.7501f, 2.5f),
 
 		// piece 5							// piece 6							// piece 7
-		glm::vec3(5.f, -0.75f, 10.f),		glm::vec3(10.f, -0.75f, 5.f),		glm::vec3(15.f, -0.75, 0.f)
+		glm::vec3(5.f, -0.75f, 10.f),		glm::vec3(10.f, -0.7501f, 5.f),		glm::vec3(15.f, -0.75, 0.f)
 	};
 
 	engine::ref<engine::material>		m_path_material{};
@@ -92,13 +93,38 @@ private:
 	////////////////
 	//handling waves
 	////////////////
+	//mannequin
 	engine::ref<engine::skinned_mesh>	m_skinned_mesh{};
 	engine::ref<engine::material>		m_mannequin_material{};
 	engine::game_object_properties		m_mannequin_props;
+	//guard
+	engine::ref<engine::skinned_mesh>	m_guardian_mesh{};
+	engine::ref<engine::material>		m_guardian_material{};
+	engine::game_object_properties		m_guardian_props;
 
-	std::vector<engine::ref<enemy>>	m_active_enemies;
+	std::vector<engine::ref<enemy>>		m_active_enemies;
 
 	void new_wave();
 	int m_enemy_count = 1;
 	int m_wave_number = 1;
+
+	////////////////
+	//handling HUD
+	////////////////
+	engine::ref<quad>					m_toygun_bkgrnd{};
+	engine::ref<quad>					m_toygun_btn{};
+	engine::ref<engine::texture_2d>		m_toygun_icon{};
+
+	engine::ref<quad>					m_wizardhat_bkgrnd{};
+	engine::ref<quad>					m_wizardhat_btn{};
+	engine::ref<engine::texture_2d>		m_wizardhat_icon{};
+
+	engine::ref<quad>					m_candle_bkgrnd{};
+	engine::ref<quad>					m_candle_btn{};
+	engine::ref<engine::texture_2d>		m_candle_icon{};
+
+	engine::ref<engine::texture_2d>		m_button_bkgrnd{};
+
+	void hud_on_render(engine::ref<engine::shader> shader);
+	void hud_init();
 };
