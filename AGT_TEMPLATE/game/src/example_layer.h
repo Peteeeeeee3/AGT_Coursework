@@ -13,6 +13,7 @@
 #include "wizard_hat.h"
 #include "enemy.h"
 #include "quad.h"
+#include "candle.h"
 
 class example_layer : public engine::layer
 {
@@ -31,6 +32,9 @@ private:
 	engine::ref<engine::skybox>			m_menu_skybox{};
 	engine::ref<engine::game_object>	m_terrain{};
 	engine::ref<engine::game_object>	m_cone{};
+	engine::ref<candle>					m_candle{};
+	engine::ref<engine::cylinder>		m_candle_body{};
+	engine::ref<engine::pentahedron>	m_candle_flame{};
 
 	//menu componenets
 	engine::ref<toygun>					m_menu_toygun_r{};
@@ -101,6 +105,8 @@ private:
 	engine::ref<engine::skinned_mesh>	m_guardian_mesh{};
 	engine::ref<engine::material>		m_guardian_material{};
 	engine::game_object_properties		m_guardian_props;
+	//spider
+	engine::game_object_properties		m_spider_props;
 
 	std::vector<engine::ref<enemy>>		m_active_enemies;
 
@@ -124,6 +130,9 @@ private:
 	engine::ref<engine::texture_2d>		m_candle_icon{};
 
 	engine::ref<engine::texture_2d>		m_button_bkgrnd{};
+
+	engine::ref<quad>					m_health_quad{};
+	engine::ref<engine::texture_2d>		m_health_txt2d{};
 
 	void hud_on_render(engine::ref<engine::shader> shader);
 	void hud_init();

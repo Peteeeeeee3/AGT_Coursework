@@ -26,3 +26,15 @@ path
 
 Source:
 https://opengameart.org/content/seamless-snow-texture-0
+
+Texture(s):
+Lava
+
+Source:
+https://opengameart.org/content/16x16-and-animated-lava-tile-45-frames
+
+Model:
+Spider
+
+Source:
+https://free3d.com/3d-model/spider-animated-low-poly-and-game-ready-87147.html

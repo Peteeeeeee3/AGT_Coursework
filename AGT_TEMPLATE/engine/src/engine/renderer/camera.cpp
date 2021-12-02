@@ -95,7 +95,7 @@ void engine::perspective_camera::on_update(const timestep& timestep)
     // commented out interfering code
 
 	auto [mouse_delta_x, mouse_delta_y] = input::mouse_position();
-    std::cout << mouse_delta_x << " " << mouse_delta_y << "\n";
+    //std::cout << mouse_delta_x << " " << mouse_delta_y << "\n";
 	//process_mouse(mouse_delta_x, mouse_delta_y);
 
 	update_camera_vectors();

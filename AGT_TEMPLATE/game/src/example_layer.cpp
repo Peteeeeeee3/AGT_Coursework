@@ -11,6 +11,9 @@
 #include "enemy.h"
 #include "engine/entities/shapes/cone.h"
 #include "quad.h"
+#include "candle.h"
+
+#include <iterator>
 
 example_layer::example_layer() 
     :m_2d_camera(-1.6f, 1.6f, -0.9f, 0.9f), 
@@ -124,6 +127,16 @@ example_layer::example_layer()
 	m_mannequin_props.type = 0;
 	m_mannequin_props.bounding_shape = m_skinned_mesh->size() / 2.f * m_mannequin_props.scale.x;
 
+	//set spider properties
+	engine::ref<engine::model> spider_model = engine::model::create("assets/models/static/spider/Only_Spider_with_Animations_Export.obj"); 
+	//engine::ref<engine::model> spider_model = engine::model::create("assets/models/static/Toy_Gun/handgun-lo.obj");
+	m_spider_props.meshes = spider_model->meshes();
+	m_spider_props.textures = spider_model->textures();
+	glm::vec3 spider_scale = glm::vec3(.01f);
+	m_spider_props.scale = spider_scale;
+	m_spider_props.position = glm::vec3(-25.f, 0.f, 0.f);
+	m_spider_props.bounding_shape = spider_model->size() / 2.f * spider_scale;
+
 	//set guardian properties
 	m_guardian_props.animated_mesh = m_guardian_mesh;
 	m_guardian_props.scale = glm::vec3(1.f / glm::max(m_guardian_mesh->size().x, glm::max(m_guardian_mesh->size().y, m_guardian_mesh->size().z)));
@@ -143,6 +156,16 @@ example_layer::example_layer()
 	m_menu_toygun_r = toygun::create(toygun_props);
 	toygun_props.position = { 3.f, 3.f, 8.f };
 	m_menu_toygun_l = toygun::create(toygun_props);
+
+	engine::game_object_properties candle_props;
+	candle_props.position = { 0.f, 0.f, 0.f };
+	m_candle_body = engine::cylinder::create(150, 1.f, 4.f, candle_props.position);
+	m_candle_flame = engine::pentahedron::create(.5f, .5f, glm::vec3(candle_props.position.x, candle_props.position.y + 4.f, candle_props.position.z));
+	engine::ref<engine::texture_2d> candle_texture = engine::texture_2d::create("assets/textures/path.png", true);
+	candle_props.meshes = { m_candle_body->mesh(), m_candle_flame->mesh() };
+	candle_props.textures = { candle_texture };
+	candle_props.scale = glm::vec3(1.f);
+	m_candle = candle::create(candle_props);
 
 	//menu text 
 	engine::ref<engine::cuboid> container_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, 0.5f), false, false);
@@ -218,7 +241,7 @@ void example_layer::on_update(const engine::timestep& time_step)
 	else
 	{
 		for (auto enemy : m_active_enemies)
-			enemy->animated_mesh()->on_update(time_step);
+			enemy->update(m_player, m_checkpoints, time_step);
 		// update camera via player class
 		// this is separated from the camera class as I will need to make multiple cameras and I do not want their codes to interfere
 		// the player can be imagined as a floating camera with some attributes like health, score, etc.
@@ -328,16 +351,18 @@ void example_layer::on_render()
 		cone_transform = glm::scale(cone_transform, glm::vec3(0.25f));
 		engine::renderer::submit(mesh_shader, cone_transform, m_cone);
 
+		engine::renderer::submit(mesh_shader, m_candle);
+
 		//render enemies
 		if (m_active_enemies.size() != 0)
 		{
-			for (auto enemy : m_active_enemies)
+			std::vector<engine::ref<enemy>>::iterator enemy;
+			for (enemy = m_active_enemies.begin(); enemy < m_active_enemies.end(); ++enemy)
 			{
-				if (enemy->type() == enemy::e_type::REG)
-					m_mannequin_material->submit(mesh_shader);
-				if (enemy->type() == enemy::e_type::GUARD)
-					m_guardian_material->submit(mesh_shader);
-				engine::renderer::submit(mesh_shader, enemy);
+				if (enemy->get()->isDead())
+					m_active_enemies.erase(enemy);
+				else 
+					engine::renderer::submit(mesh_shader, *enemy);
 			}
 		}
 
@@ -375,6 +400,9 @@ void example_layer::on_event(engine::event& event)
 		{
 			new_wave();
 		}
+
+		if (e.key_code() == engine::key_codes::KEY_8)
+			m_player.damage(5);
 
 		// menu controls
 		if(inMenu)
@@ -447,8 +475,9 @@ void example_layer::new_wave()
 
 	for (int itr = 0; itr < m_enemy_count; ++itr)
 	{	
-		m_active_enemies.push_back(enemy::create(m_mannequin_props, 100.f, 5.f, 1.f, enemy::e_type::REG));
-		m_active_enemies.push_back(enemy::create(m_guardian_props, 50.f, 5.f, 5.f, enemy::e_type::GUARD));
+		//m_active_enemies.push_back(enemy::create(m_mannequin_props, 100.f, 5.f, 1.f));
+		//m_active_enemies.push_back(enemy::create(m_guardian_props, 50.f, 5.f, 5.f));
+		m_active_enemies.push_back(enemy::create(m_spider_props, 50.f, 5.f, 5.f, enemy::e_type::SPIDER));
 	}
 }
 
@@ -457,9 +486,11 @@ void example_layer::new_wave()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void example_layer::hud_on_render(engine::ref<engine::shader> shader)
 {
-	//render score
 	const auto text_shader = engine::renderer::shaders_library()->get("text_2D");
-	m_text_manager->render_text(text_shader, "Score: " + std::to_string((int) m_player.score()), (float)engine::application::window().width() / 2.f - 90.f, (float)engine::application::window().height() - 40.f, .75f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+	//render score
+	m_text_manager->render_text(text_shader, "Score: " + std::to_string((int) m_player.score()), (float) engine::application::window().width() / 2.f - 90.f, (float)engine::application::window().height() - 40.f, .75f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+	//render health
+	m_text_manager->render_text(text_shader, std::to_string((int) m_player.health()), 135.f, (float) engine::application::window().height() - 65.f, .55f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
 
 	engine::renderer::begin_scene(m_2d_camera, shader);
 	////////////////
@@ -516,7 +547,19 @@ void example_layer::hud_on_render(engine::ref<engine::shader> shader)
 	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", 1.f);
 	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
 	m_candle_icon->bind();
+	engine::renderer::submit(shader, m_candle_btn->mesh(), icon_c_transform);
 
+	//health
+	glm::mat4 health_transform(1.f);
+	health_transform = glm::translate(health_transform, glm::vec3(-1.4f, 0.75f, 0.2f));
+	if (m_player.health() > 0)
+		health_transform = glm::scale(health_transform, glm::vec3(0.01f * m_player.health() + 0.3f));
+	else
+		health_transform = glm::scale(health_transform, glm::vec3(0.3f));
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", 1.f);
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+	m_health_txt2d->bind();
+	engine::renderer::submit(shader, m_health_quad->mesh(), health_transform);
 
 	engine::renderer::end_scene();
 }
@@ -526,10 +569,10 @@ void example_layer::hud_init()
 	//intialize button background
 	m_button_bkgrnd = engine::texture_2d::create("assets/textures/button_background.png", true);
 
-	//initialize icons
+	//initialize button icons
 	m_wizardhat_icon = engine::texture_2d::create("assets/textures/wizhat_icon.png", true);
 	m_toygun_icon = engine::texture_2d::create("assets/textures/toygun_icon.png", true);
-	m_candle_icon = engine::texture_2d::create("assets/textures/toygun_icon.png", true);
+	m_candle_icon = engine::texture_2d::create("assets/textures/candle_icon.png", true);
 
 	//create buttons
 	m_wizardhat_btn = quad::create(glm::vec2(0.08f, 0.08f));
@@ -540,4 +583,8 @@ void example_layer::hud_init()
 	m_wizardhat_bkgrnd = quad::create(glm::vec2(0.08f, 0.08f));
 	m_toygun_bkgrnd = quad::create(glm::vec2(0.08f, 0.08f));
 	m_candle_bkgrnd = quad::create(glm::vec2(0.08f, 0.08f));
+
+	//create health icon
+	m_health_txt2d = engine::texture_2d::create("assets/textures/health.png", true);
+	m_health_quad = quad::create(glm::vec2(0.08f, 0.08f));
 }

@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\candle.h" />
     <ClInclude Include="src\enemy.h" />
     <ClInclude Include="src\example_layer.h" />
     <ClInclude Include="src\player.h" />
@@ -140,6 +141,7 @@
     <ClInclude Include="src\wizard_hat.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\candle.cpp" />
     <ClCompile Include="src\enemy.cpp" />
     <ClCompile Include="src\example_layer.cpp" />
     <ClCompile Include="src\game.cpp" />

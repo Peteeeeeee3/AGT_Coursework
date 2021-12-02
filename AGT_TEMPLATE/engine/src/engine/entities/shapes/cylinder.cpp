@@ -31,12 +31,78 @@ engine::cylinder::cylinder(uint32_t sections, float radius, float height, glm::v
 	glm::vec3 b_normal; // normal of triangle
 
 	//point along top circle
-	float c_x;
+	float x;
 	float c_y = m_peak.y;
-	float c_z;
+	float b_y = m_center.y; //point along bottom circle only differs in the y-coordinate
+	float z;
 
-	//point along bottom circle
-	float b_x;
-	float b_y = m_center.y;
-	float b_z;
+	//track correct index
+	int index = 0;
+
+	for (int i = 0; i < m_sections + 1; ++i)
+	{
+		// calculate x and y values of right point
+		x = m_radius * glm::sin(step_size * i);
+		z = m_radius * glm::cos(step_size * i);
+		//assign coordinates
+		c_right = glm::vec3(x, c_y, z);
+		b_right = glm::vec3(x, b_y, z);
+		//std::cout << "c: " << c_right << " b: " << b_right << "\n";
+		//ceiling normal
+		c_normal = glm::cross(m_peak - c_left, m_peak - c_right);
+		//ceiling vertices
+		cyl_vertices.push_back({ c_left, c_normal, {0.f, 0.f} });
+		cyl_vertices.push_back({ c_right, c_normal, {1.f, 0.f} });
+		cyl_vertices.push_back({ m_peak, c_normal, {0.5f, 1.f} });
+		for (int j = 0; j < 3; ++j)
+		{
+			cyl_indices.push_back(index);
+			++index;
+		}
+
+		//wall normal
+		w_normal = glm::cross(b_left - c_left, b_left - b_right);
+		//wall vertices - handle as two triangles
+		cyl_vertices.push_back({ b_left, w_normal, {0.f, 0.f} });
+		cyl_indices.push_back(index);
+		uint32_t bl_index = index;
+		++index;
+		cyl_vertices.push_back({ b_right, w_normal, {1.f, 0.f} });
+		cyl_indices.push_back(index);
+		++index;
+		cyl_vertices.push_back({ c_right, w_normal, {1.f, 1.f} });
+		cyl_indices.push_back(index);
+		uint32_t cr_index = index;
+		++index;
+		cyl_vertices.push_back({ c_left, w_normal, { 0.f, 1.f } });
+		cyl_indices.push_back(bl_index);
+		cyl_indices.push_back(cr_index);
+		cyl_indices.push_back(index);
+		++index;
+		
+		//base normal
+		b_normal = glm::cross(m_center - b_left, m_center - b_right);
+		//base vertices
+		cyl_vertices.push_back({ m_center, b_normal, {0.5f, 1.f} });
+		cyl_vertices.push_back({ b_right, b_normal, {1.f, 0.f} });
+		cyl_vertices.push_back({ b_left, b_normal, {0.f, 0.f} });
+		for (int j = 0; j < 3; ++j)
+		{
+			cyl_indices.push_back(index);
+			++index;
+		}
+		//assigne current right to be next left
+		c_left = c_right;
+		b_left = b_right;
+	}
+	std::cout << cyl_vertices.size() << " " << cyl_indices.size() << "\n";
+
+	m_mesh = engine::mesh::create(cyl_vertices, cyl_indices);
+}
+
+engine::cylinder::~cylinder() {}
+
+engine::ref<engine::cylinder> engine::cylinder::create(uint32_t sections, float radius, float height, glm::vec3 center)
+{
+	return std::make_shared<engine::cylinder>(sections, radius, height, center);
 }
