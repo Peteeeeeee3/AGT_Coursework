@@ -97,21 +97,16 @@ private:
 	////////////////
 	//handling waves
 	////////////////
-	//mannequin
-	engine::ref<engine::skinned_mesh>	m_skinned_mesh{};
-	engine::ref<engine::material>		m_mannequin_material{};
-	engine::game_object_properties		m_mannequin_props;
-	//guard
-	engine::ref<engine::skinned_mesh>	m_guardian_mesh{};
-	engine::ref<engine::material>		m_guardian_material{};
-	engine::game_object_properties		m_guardian_props;
 	//spider
 	engine::game_object_properties		m_spider_props;
+	engine::game_object_properties		m_mech_props;
+	engine::game_object_properties		m_claptrap_props;
+	engine::game_object_properties		m_ironman_props;
 
 	std::vector<engine::ref<enemy>>		m_active_enemies;
 
 	void new_wave();
-	int m_enemy_count = 1;
+	int m_enemy_count = 5;
 	int m_wave_number = 1;
 
 	////////////////

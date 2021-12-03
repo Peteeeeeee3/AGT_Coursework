@@ -6,7 +6,7 @@ class enemy : public engine::game_object
 {
 public:
 	enum e_type {
-		SPIDER
+		SPIDER, MECH, CLAPTRAP, IRONMAN
 	};
 
 	enemy(const engine::game_object_properties& props, float health, float strength, float speed, e_type type);

@@ -56,10 +56,6 @@ example_layer::example_layer()
 		(float)engine::application::window().height()));
 	m_material = engine::material::create(1.0f, glm::vec3(1.0f, 0.1f, 0.07f),
 		glm::vec3(1.0f, 0.1f, 0.07f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f);
-	m_mannequin_material = engine::material::create(1.0f, glm::vec3(0.5f, 0.5f, 0.5f),
-		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f);
-	m_guardian_material = engine::material::create(1.0f, glm::vec3(0.5f, 0.5f, 0.5f),
-		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f);
 
 	// Skybox texture from http://www.vwall.it/wp-content/plugins/canvasio3dpro/inc/resource/cubeMaps/
 	m_menu_skybox = engine::skybox::create(50.f,
@@ -79,21 +75,6 @@ example_layer::example_layer()
 		  engine::texture_2d::create("assets/textures/skybox/posy.jpg", true),
 		  engine::texture_2d::create("assets/textures/skybox/negy.jpg", true)
 		});
-
-	//mannequin animations
-	m_skinned_mesh = engine::skinned_mesh::create("assets/models/animated/mannequin/free3Dmodel.dae");
-	m_skinned_mesh->LoadAnimationFile("assets/models/animated/mannequin/walking.dae");
-	m_skinned_mesh->LoadAnimationFile("assets/models/animated/mannequin/idle.dae");
-	m_skinned_mesh->LoadAnimationFile("assets/models/animated/mannequin/jump.dae");
-	m_skinned_mesh->LoadAnimationFile("assets/models/animated/mannequin/standard_run.dae");
-	m_skinned_mesh->switch_root_movement(false);
-
-	//forrest guard animations
-	m_guardian_mesh = engine::skinned_mesh::create("assets/models/animated/forrest_guard/Mesh/Mesh.FBX");
-	m_guardian_mesh->LoadAnimationFile("assets/models/animated/forrest_guard/animation/forest_guard@walk.FBX");
-	m_guardian_mesh->LoadAnimationFile("assets/models/animated/forrest_guard/animation/forest_guard@run.FBX");
-	m_guardian_mesh->LoadAnimationFile("assets/models/animated/forrest_guard/animation/forest_guard@get_hit_block.FBX");
-	m_guardian_mesh->switch_root_movement(false);
 
 	//create player object
 	m_player = player(m_3d_camera);
@@ -120,16 +101,8 @@ example_layer::example_layer()
 	//initialize hud
 	hud_init();
 
-	//set mannerquin properties
-	m_mannequin_props.animated_mesh = m_skinned_mesh;
-	m_mannequin_props.scale = glm::vec3(1.f / glm::max(m_skinned_mesh->size().x, glm::max(m_skinned_mesh->size().y, m_skinned_mesh->size().z)));
-	m_mannequin_props.position = glm::vec3(-25.f, 0.f, 0.f);
-	m_mannequin_props.type = 0;
-	m_mannequin_props.bounding_shape = m_skinned_mesh->size() / 2.f * m_mannequin_props.scale.x;
-
 	//set spider properties
-	engine::ref<engine::model> spider_model = engine::model::create("assets/models/static/spider/Only_Spider_with_Animations_Export.obj"); 
-	//engine::ref<engine::model> spider_model = engine::model::create("assets/models/static/Toy_Gun/handgun-lo.obj");
+	engine::ref<engine::model> spider_model = engine::model::create("assets/models/static/spider/Only_Spider_with_Animations_Export.obj");
 	m_spider_props.meshes = spider_model->meshes();
 	m_spider_props.textures = spider_model->textures();
 	glm::vec3 spider_scale = glm::vec3(.01f);
@@ -137,12 +110,32 @@ example_layer::example_layer()
 	m_spider_props.position = glm::vec3(-25.f, 0.f, 0.f);
 	m_spider_props.bounding_shape = spider_model->size() / 2.f * spider_scale;
 
-	//set guardian properties
-	m_guardian_props.animated_mesh = m_guardian_mesh;
-	m_guardian_props.scale = glm::vec3(1.f / glm::max(m_guardian_mesh->size().x, glm::max(m_guardian_mesh->size().y, m_guardian_mesh->size().z)));
-	m_guardian_props.position = glm::vec3(-25.f, 0.f, 0.f);
-	m_guardian_props.type = 0;
-	m_guardian_props.bounding_shape = m_guardian_mesh->size() / 2.f * m_guardian_props.scale.x;
+	//set mech porperties
+	engine::ref<engine::model> mech_model = engine::model::create("assets/models/static/Mech_F_432/Material/mech_f_432.obj");
+	m_mech_props.meshes = mech_model->meshes();
+	m_mech_props.textures = mech_model->textures();
+	glm::vec3 mech_scale = glm::vec3(.7f);
+	m_mech_props.scale = mech_scale;
+	m_mech_props.position = glm::vec3(-25.f, 0.f, 0.f);
+	m_mech_props.bounding_shape = mech_model->size() / 2.f * mech_scale;
+
+	//set claptrap properties
+	engine::ref<engine::model> claptrap_model = engine::model::create("assets/models/static/claptrap/Modeldatei/Claptrap3.obj");
+	m_claptrap_props.meshes = claptrap_model->meshes();
+	m_claptrap_props.textures = claptrap_model->textures();
+	glm::vec3 claptrap_scale = glm::vec3(.3f);
+	m_claptrap_props.scale = claptrap_scale;
+	m_claptrap_props.position = glm::vec3(-25.f, 0.f, 0.f);
+	m_claptrap_props.bounding_shape = mech_model->size() / 2.f * mech_scale;
+
+	//set ironman properties
+	engine::ref<engine::model> ironman_model = engine::model::create("assets/models/static/IronMan/IronMan.obj");
+	m_ironman_props.meshes = ironman_model->meshes();
+	m_ironman_props.textures = ironman_model->textures();
+	glm::vec3 ironman_scale = glm::vec3(.01f);
+	m_ironman_props.scale = ironman_scale;
+	m_ironman_props.position = glm::vec3(-25.f, 0.f, 0.f);
+	m_ironman_props.bounding_shape = ironman_model->size() / 2.f * ironman_scale;
 
 	// load toy gun model and create object. set its properties
 	engine::ref<engine::model> toygun_model = engine::model::create("assets/models/static/Toy_Gun/handgun-lo.obj");
@@ -207,9 +200,6 @@ example_layer::example_layer()
 	m_text_manager = engine::text_manager::create();
 
 	m_3d_camera.set_view_matrix(glm::vec3(0.f, 10.f, 0.f), glm::vec3(-5.f, 0.f, -5.f));
-
-	m_skinned_mesh->switch_animation(1);
-	m_guardian_mesh->switch_animation(1);
 }
 
 example_layer::~example_layer() {}
@@ -356,13 +346,12 @@ void example_layer::on_render()
 		//render enemies
 		if (m_active_enemies.size() != 0)
 		{
-			std::vector<engine::ref<enemy>>::iterator enemy;
-			for (enemy = m_active_enemies.begin(); enemy < m_active_enemies.end(); ++enemy)
+			for (int i = 0; i < m_active_enemies.size(); ++i)
 			{
-				if (enemy->get()->isDead())
-					m_active_enemies.erase(enemy);
+				if (m_active_enemies.at(i)->isDead())
+					m_active_enemies.erase(m_active_enemies.begin() + i);
 				else 
-					engine::renderer::submit(mesh_shader, *enemy);
+					engine::renderer::submit(mesh_shader, m_active_enemies.at(i));
 			}
 		}
 
@@ -468,17 +457,37 @@ void example_layer::draw_path(const engine::ref<engine::shader>& shader)
 
 void example_layer::new_wave()
 {
-	if (m_wave_number % 10 == 0)
+	if (m_wave_number % 2 == 0)
 	{
-		
+		for (int i = 0; i < m_wave_number / 2; ++i)
+		{
+			m_active_enemies.push_back(enemy::create(m_claptrap_props, 100.f, 5.f, 1.f, enemy::e_type::CLAPTRAP));
+		}
+	}
+
+	if (m_wave_number % 5 == 0)
+	{
+		for (int i = 0; i < m_wave_number / 5; ++i)
+		{
+			m_active_enemies.push_back(enemy::create(m_mech_props, 150.f, 20.f, 0.65f, enemy::e_type::MECH));
+		}
+	}
+
+	if (m_wave_number % 10)
+	{
+		for (int i = 0; i < m_wave_number / 10; ++i)
+		{
+			m_active_enemies.push_back(enemy::create(m_ironman_props, 300.f, 50.f, 0.4f, enemy::e_type::IRONMAN));
+		}
 	}
 
 	for (int itr = 0; itr < m_enemy_count; ++itr)
 	{	
-		//m_active_enemies.push_back(enemy::create(m_mannequin_props, 100.f, 5.f, 1.f));
-		//m_active_enemies.push_back(enemy::create(m_guardian_props, 50.f, 5.f, 5.f));
-		m_active_enemies.push_back(enemy::create(m_spider_props, 50.f, 5.f, 5.f, enemy::e_type::SPIDER));
+		m_active_enemies.push_back(enemy::create(m_spider_props, 50.f, 5.f, 3.f, enemy::e_type::SPIDER));
 	}
+
+	++m_wave_number;
+	++m_enemy_count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
