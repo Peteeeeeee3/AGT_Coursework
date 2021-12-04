@@ -14,6 +14,7 @@
 #include "enemy.h"
 #include "quad.h"
 #include "candle.h"
+#include "engine/utils/bounding_box.h"
 
 class example_layer : public engine::layer
 {
@@ -99,8 +100,11 @@ private:
 	////////////////
 	//spider
 	engine::game_object_properties		m_spider_props;
+	//mech
 	engine::game_object_properties		m_mech_props;
+	//claptrap
 	engine::game_object_properties		m_claptrap_props;
+	//ironman
 	engine::game_object_properties		m_ironman_props;
 
 	std::vector<engine::ref<enemy>>		m_active_enemies;

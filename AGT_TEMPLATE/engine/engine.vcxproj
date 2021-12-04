@@ -576,6 +576,7 @@ IF EXIST ..\engine\external\FMOD\lib\x64\fmod.dll\ (xcopy /Q /E /Y /I ..\engine\
     <ClInclude Include="src\engine\renderer\vertex_array.h" />
     <ClInclude Include="src\engine\utils\assimp_extensions.h" />
     <ClInclude Include="src\engine\utils\audio_manager.h" />
+    <ClInclude Include="src\engine\utils\bounding_box.h" />
     <ClInclude Include="src\engine\utils\bullet_manager.h" />
     <ClInclude Include="src\engine\utils\event_sound.h" />
     <ClInclude Include="src\engine\utils\file_utils.h" />
@@ -628,6 +629,7 @@ IF EXIST ..\engine\external\FMOD\lib\x64\fmod.dll\ (xcopy /Q /E /Y /I ..\engine\
     <ClCompile Include="src\engine\renderer\texture.cpp" />
     <ClCompile Include="src\engine\renderer\vertex_array.cpp" />
     <ClCompile Include="src\engine\utils\audio_manager.cpp" />
+    <ClCompile Include="src\engine\utils\bounding_boxe.cpp" />
     <ClCompile Include="src\engine\utils\bullet_manager.cpp" />
     <ClCompile Include="src\engine\utils\event_sound.cpp" />
     <ClCompile Include="src\engine\utils\timer.cpp" />

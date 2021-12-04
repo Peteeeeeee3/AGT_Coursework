@@ -1,6 +1,6 @@
 #include "tower.h"
 
-tower::tower(const engine::game_object_properties props) : engine::game_object(props) {}
+tower::tower(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies) : engine::game_object(props), m_active_enemies(enemies) {}
 
 tower::~tower() {}
 
@@ -16,7 +16,12 @@ void tower::attack()
 
 }
 
-engine::ref<tower> tower::create(const engine::game_object_properties& props)
+void tower::upgradeLeft_lvl1() {}
+void tower::upgradeLeft_lvl2() {}
+void tower::upgradeRight_lvl1() {}
+void tower::upgradeRight_lvl2() {}
+
+engine::ref<tower> tower::create(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies)
 {
-	return std::make_shared<tower>(props);
+	return std::make_shared<tower>(props, enemies);
 }

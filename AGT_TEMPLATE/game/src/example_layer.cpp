@@ -117,7 +117,7 @@ example_layer::example_layer()
 	glm::vec3 mech_scale = glm::vec3(.7f);
 	m_mech_props.scale = mech_scale;
 	m_mech_props.position = glm::vec3(-25.f, 0.f, 0.f);
-	m_mech_props.bounding_shape = mech_model->size() / 2.f * mech_scale;
+	m_mech_props.bounding_shape = glm::vec3(5.f, 7.f, 3.f);
 
 	//set claptrap properties
 	engine::ref<engine::model> claptrap_model = engine::model::create("assets/models/static/claptrap/Modeldatei/Claptrap3.obj");
@@ -146,9 +146,9 @@ example_layer::example_layer()
 	toygun_props.position = { -3.f, 3.f, 8.f };
 	toygun_props.scale = glm::vec3(toygun_scale);
 	toygun_props.bounding_shape = toygun_model->size() / 2.f * toygun_scale;
-	m_menu_toygun_r = toygun::create(toygun_props);
+	m_menu_toygun_r = toygun::create(toygun_props, m_active_enemies);
 	toygun_props.position = { 3.f, 3.f, 8.f };
-	m_menu_toygun_l = toygun::create(toygun_props);
+	m_menu_toygun_l = toygun::create(toygun_props, m_active_enemies);
 
 	engine::game_object_properties candle_props;
 	candle_props.position = { 0.f, 0.f, 0.f };
@@ -158,7 +158,7 @@ example_layer::example_layer()
 	candle_props.meshes = { m_candle_body->mesh(), m_candle_flame->mesh() };
 	candle_props.textures = { candle_texture };
 	candle_props.scale = glm::vec3(1.f);
-	m_candle = candle::create(candle_props);
+	m_candle = candle::create(candle_props, m_active_enemies);
 
 	//menu text 
 	engine::ref<engine::cuboid> container_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, 0.5f), false, false);
@@ -350,8 +350,12 @@ void example_layer::on_render()
 			{
 				if (m_active_enemies.at(i)->isDead())
 					m_active_enemies.erase(m_active_enemies.begin() + i);
-				else 
-					engine::renderer::submit(mesh_shader, m_active_enemies.at(i));
+				else
+					if (m_active_enemies.at(i)->toRender())
+					{
+						m_active_enemies.at(i)->bounding_box().on_render(1.f, 0.f, 0.f, mesh_shader);
+						engine::renderer::submit(mesh_shader, m_active_enemies.at(i));
+					}
 			}
 		}
 
@@ -385,9 +389,12 @@ void example_layer::on_event(engine::event& event)
 				inMenu = false;
 		}
 
-		if (e.key_code() == engine::key_codes::KEY_N)
+		if (!inMenu)
 		{
-			new_wave();
+			if (e.key_code() == engine::key_codes::KEY_N)
+			{
+				new_wave();
+			}
 		}
 
 		if (e.key_code() == engine::key_codes::KEY_8)
@@ -461,7 +468,7 @@ void example_layer::new_wave()
 	{
 		for (int i = 0; i < m_wave_number / 2; ++i)
 		{
-			m_active_enemies.push_back(enemy::create(m_claptrap_props, 100.f, 5.f, 1.f, enemy::e_type::CLAPTRAP));
+			m_active_enemies.push_back(enemy::create(m_claptrap_props, 100.f, 5.f, 1.f, 1.f * i, enemy::e_type::CLAPTRAP));
 		}
 	}
 
@@ -469,21 +476,22 @@ void example_layer::new_wave()
 	{
 		for (int i = 0; i < m_wave_number / 5; ++i)
 		{
-			m_active_enemies.push_back(enemy::create(m_mech_props, 150.f, 20.f, 0.65f, enemy::e_type::MECH));
+			m_active_enemies.push_back(enemy::create(m_mech_props, 150.f, 20.f, 0.65f, 8.f * i, enemy::e_type::MECH));
 		}
 	}
 
-	if (m_wave_number % 10)
+	if (m_wave_number % 10 == 0)
 	{
 		for (int i = 0; i < m_wave_number / 10; ++i)
 		{
-			m_active_enemies.push_back(enemy::create(m_ironman_props, 300.f, 50.f, 0.4f, enemy::e_type::IRONMAN));
+			m_active_enemies.push_back(enemy::create(m_ironman_props, 300.f, 50.f, 0.4f, 5.f * i, enemy::e_type::IRONMAN));
 		}
 	}
 
-	for (int itr = 0; itr < m_enemy_count; ++itr)
+	for (int i = 0; i < m_enemy_count; ++i)
 	{	
-		m_active_enemies.push_back(enemy::create(m_spider_props, 50.f, 5.f, 3.f, enemy::e_type::SPIDER));
+		m_active_enemies.push_back(enemy::create(m_spider_props, 50.f, 5.f, 3.f, 1.f * i, enemy::e_type::SPIDER));
+		std::cout << 5.f * i << "\n";
 	}
 
 	++m_wave_number;
