@@ -13,21 +13,27 @@ public:
 	tower(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies);
 	~tower();
 	virtual void init();
-	virtual void update();
+	virtual void update(float dt);
 	virtual void attack();
 	virtual void upgradeRight_lvl1();
 	virtual void upgradeRight_lvl2();
 	virtual void upgradeLeft_lvl1();
 	virtual void upgradeLeft_lvl2();
-	
+	void render_range(engine::ref<engine::shader> shader);
+	bool to_render_range() { return m_to_render_range; }
+	void set_to_render_range(bool to_render_range) { m_to_render_range = to_render_range; }
 
 	static engine::ref<tower> create(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies);
 
 protected:
-	std::vector<engine::game_object> enemies_in_range;
-	float m_damage;
-	float m_attack_speed;
-	float m_range;
+	void init_range();
+
+	float								m_damage;
+	float								m_attack_speed;
+	float								m_range;
 	std::vector<engine::ref<enemy>>		m_active_enemies;
-	engine::timer						m_attack_timer;
+	float								m_elapsed;
+	engine::ref<engine::game_object>	m_range_highlight;
+	bool								m_to_render_range = false;
+	engine::ref<engine::material>		m_range_material{};
 };

@@ -15,6 +15,11 @@
 
 #include <iterator>
 
+template<typename Base, typename T>
+inline bool instanceof(const T*) {
+	return std::is_base_of<Base, T>::value;
+}
+
 example_layer::example_layer() 
     :m_2d_camera(-1.6f, 1.6f, -0.9f, 0.9f), 
     m_3d_camera((float)engine::application::window().width(), (float)engine::application::window().height())
@@ -159,6 +164,7 @@ example_layer::example_layer()
 	candle_props.textures = { candle_texture };
 	candle_props.scale = glm::vec3(1.f);
 	m_candle = candle::create(candle_props, m_active_enemies);
+	m_towers.push_back(m_candle);
 
 	//menu text 
 	engine::ref<engine::cuboid> container_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, 0.5f), false, false);
@@ -188,10 +194,11 @@ example_layer::example_layer()
 	engine::ref<engine::cone> cone_shape = engine::cone::create(150, 5.f, 3.f, glm::vec3(0.f, 0.f, 0.f));
 	engine::ref<engine::texture_2d> cone_texture = engine::texture_2d::create("assets/textures/wizard_hat.png", true);
 	engine::game_object_properties cone_props;
-	cone_props.position = { 0.f, 0.f, 0.f };
+	cone_props.position = { 5.f, 0.f, 0.f };
 	cone_props.meshes = { cone_shape->mesh() };
 	cone_props.textures = { cone_texture };
-	m_cone = engine::game_object::create(cone_props);
+	m_cone = wizard_hat::create(cone_props, m_active_enemies);
+	m_towers.push_back(m_cone);
 
 	m_game_objects.push_back(m_terrain);
 	
@@ -232,6 +239,9 @@ void example_layer::on_update(const engine::timestep& time_step)
 	{
 		for (auto enemy : m_active_enemies)
 			enemy->update(m_player, m_checkpoints, time_step);
+
+		for (auto tower : m_towers)
+			tower->update(time_step);
 		// update camera via player class
 		// this is separated from the camera class as I will need to make multiple cameras and I do not want their codes to interfere
 		// the player can be imagined as a floating camera with some attributes like health, score, etc.
@@ -244,6 +254,14 @@ void example_layer::on_update(const engine::timestep& time_step)
 		for (auto enemy : m_active_enemies)
 		{
 			enemy->update(m_player, m_checkpoints, time_step);
+		}
+
+		for (auto tower : m_towers)
+		{
+			if (instanceof<candle>(tower.get()))
+			{
+				std::dynamic_pointer_cast<candle>(tower)->flame()->on_update(time_step);
+			}
 		}
 	}
 } 
@@ -314,34 +332,17 @@ void example_layer::on_render()
 
 		// render terrain
 		engine::renderer::submit(mesh_shader, m_terrain);
-
-		// render toy guns
-		for (int i = 0; i < 8; ++i) {
-			glm::mat4 toygun_transfrom(1.f);
-			toygun_transfrom = glm::translate(toygun_transfrom, glm::vec3(3.f + i, i + 0.5f, 3.f+ i));
-			toygun_transfrom = glm::rotate(toygun_transfrom, (glm::pi<float>() * 2 / 8 * i), glm::vec3(0.f, 1.f, 0.f));
-			toygun_transfrom = glm::scale(toygun_transfrom, m_menu_toygun_r->scale() * (1.f / static_cast<float>(i)));
-			engine::renderer::submit(mesh_shader, toygun_transfrom, m_menu_toygun_r);
+		
+		//render towers
+		for (auto tower : m_towers)
+		{
+			glm::mat4 tower_transform(1.f);
+			tower_transform = glm::translate(tower_transform, tower->position());
+			tower_transform = glm::scale(tower_transform, glm::vec3(0.5f));
+			engine::renderer::submit(mesh_shader, tower_transform, tower);
+			if (tower->to_render_range())
+				tower->render_range(mesh_shader);
 		}
-
-		//hat 1
-		glm::mat4 cone_transform(1.0f);
-		cone_transform = glm::scale(cone_transform, glm::vec3(0.25f));
-		engine::renderer::submit(mesh_shader, cone_transform, m_cone);
-
-		//hat 2
-		cone_transform = glm::translate(cone_transform, glm::vec3(5.f, 5.f, 5.f));
-		cone_transform = glm::rotate(cone_transform, glm::pi<float>(), glm::vec3(0.f, 0.f, 1.f));
-		cone_transform = glm::scale(cone_transform, glm::vec3(0.25f));
-		engine::renderer::submit(mesh_shader, cone_transform, m_cone);
-
-		//hat3
-		cone_transform = glm::translate(cone_transform, glm::vec3(10.f, 0.f, 10.f));
-		cone_transform = glm::rotate(cone_transform, glm::pi<float>() / 2, glm::vec3(0.f, 1.f, 1.f));
-		cone_transform = glm::scale(cone_transform, glm::vec3(0.25f));
-		engine::renderer::submit(mesh_shader, cone_transform, m_cone);
-
-		engine::renderer::submit(mesh_shader, m_candle);
 
 		//render enemies
 		if (m_active_enemies.size() != 0)
@@ -362,6 +363,16 @@ void example_layer::on_render()
 		//render path
 		draw_path(mesh_shader);
 
+		engine::renderer::end_scene();
+
+		engine::renderer::begin_scene(m_3d_camera, mesh_shader);
+		for (auto tower : m_towers)
+		{
+			if (instanceof<candle>(tower.get()))
+			{
+				std::dynamic_pointer_cast<candle>(tower)->flame()->on_render(m_3d_camera, mesh_shader);
+			}
+		}
 		engine::renderer::end_scene();
 
 		//render hud

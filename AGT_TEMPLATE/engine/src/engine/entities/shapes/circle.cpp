@@ -19,8 +19,11 @@ engine::circle::circle(glm::vec3 position, uint32_t triangles, float r) : m_cent
 	float y = m_center.y;
 	float z;
 
+	int asd = 0;
 	for (int i = 0; i < m_triangles; ++i)
 	{
+		asd++;
+		std::cout << asd << "\n";
 		// calculate x and y values of right point
 		x = m_radius * glm::sin(step_size * i);
 		z = m_radius * glm::cos(step_size * i);
@@ -49,4 +52,9 @@ engine::circle::circle(glm::vec3 position, uint32_t triangles, float r) : m_cent
 	}
 	//create circle mesh
 	m_mesh = engine::mesh::create(circle_vertices, circle_indices);
+}
+
+engine::ref<engine::circle> engine::circle::create(glm::vec3 position, uint32_t triangles, float r)
+{
+	return std::make_shared<engine::circle>(position, triangles, r);
 }

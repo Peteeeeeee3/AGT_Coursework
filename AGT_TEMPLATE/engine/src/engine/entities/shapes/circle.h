@@ -13,8 +13,9 @@ namespace engine
 		float radius() { return m_radius; }
 		uint32_t triangles() { return m_triangles; }
 		glm::vec3 center() { return m_center; }
+		ref<mesh> mesh() { return m_mesh; }
 
-		static ref<circle> create(uint32_t triangles, float r);
+		static ref<circle> create(glm::vec3 position, uint32_t triangles, float r);
 
 	private:
 		float m_radius;

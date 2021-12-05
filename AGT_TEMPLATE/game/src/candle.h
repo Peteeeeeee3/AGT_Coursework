@@ -3,6 +3,7 @@
 #include "tower.h"
 #include "engine/utils/timer.h"
 #include "enemy.h"
+#include "billboard.h"
 
 class candle : public tower
 {
@@ -10,8 +11,9 @@ public:
 	candle(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies);
 	~candle();
 	void init() override;
-	void update() override;
+	void update(float dt) override;
 	void attack() override;
+	engine::ref<billboard> flame() { return m_flame; }
 
 	static engine::ref<candle> create(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies);
 
@@ -19,4 +21,5 @@ private:
 	float								m_flash_frequency;
 	float								m_stun_duration;
 	bool								m_inTurret = false;
+	engine::ref<billboard>				m_flame;
 };

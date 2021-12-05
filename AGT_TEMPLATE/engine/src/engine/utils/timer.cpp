@@ -4,8 +4,8 @@
 
 void engine::timer::start()
 {
-	reset();
 	m_started = true;
+	reset();
 }
 
 void engine::timer::reset()
@@ -13,7 +13,6 @@ void engine::timer::reset()
 	// current time in seconds
 	m_start_time = glfwGetTime();
 	m_last_frame = m_start_time;
-	m_started = false;
 }
 
 double engine::timer::elapsed()

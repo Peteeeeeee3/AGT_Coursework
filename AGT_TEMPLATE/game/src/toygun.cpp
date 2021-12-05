@@ -11,10 +11,10 @@ toygun::~toygun() {}
 
 void toygun::init()
 {
-	
+	m_elapsed = 0.f;
 }
 
-void toygun::update()
+void toygun::update(float dt)
 {
 	
 }

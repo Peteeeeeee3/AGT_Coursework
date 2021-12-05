@@ -32,7 +32,7 @@ private:
 	engine::ref<engine::skybox>			m_game_skybox{};
 	engine::ref<engine::skybox>			m_menu_skybox{};
 	engine::ref<engine::game_object>	m_terrain{};
-	engine::ref<engine::game_object>	m_cone{};
+	engine::ref<wizard_hat>	m_cone{};
 	engine::ref<candle>					m_candle{};
 	engine::ref<engine::cylinder>		m_candle_body{};
 	engine::ref<engine::pentahedron>	m_candle_flame{};
@@ -112,6 +112,12 @@ private:
 	void new_wave();
 	int m_enemy_count = 5;
 	int m_wave_number = 1;
+
+	////////////////
+	//handling towers
+	////////////////
+
+	std::vector<engine::ref<tower>>		m_towers;
 
 	////////////////
 	//handling HUD

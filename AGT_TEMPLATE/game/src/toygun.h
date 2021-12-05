@@ -8,7 +8,7 @@ public:
 	toygun(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies);
 	~toygun();
 	void init() override;
-	void update() override;
+	void update(float dt) override;
 	void rotate(bool rotate_left, float dt);
 	void attack() override;
 
