@@ -19,8 +19,10 @@ public:
 	bool toRender() { return m_life_time >= m_spawn_time; }
 	engine::bounding_box bounding_box() { return m_bounding_box; }
 	void stun(float duration) { m_stun_duration = duration; m_isStunned = true; }
+	bool isStunnded() { return m_isStunned; }
 	void damage(float inflict) { m_health -= inflict; }
 	void heal(float inflict) { m_health += inflict; }
+
 
 	static engine::ref<enemy> create(const engine::game_object_properties& props, float health, float strength, float speed, float spawn_time, e_type type);
 
@@ -35,7 +37,7 @@ private:
 	engine::bounding_box m_bounding_box;
 	float m_stun_duration;
 	bool m_isStunned = false;
-	engine::timer m_stun_timer;
+	float m_stun_timer = 0.f;
 
 	enum e_section {
 		START, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, FINISH

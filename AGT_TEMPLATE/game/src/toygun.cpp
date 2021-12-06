@@ -14,7 +14,7 @@ void toygun::init()
 	m_elapsed = 0.f;
 }
 
-void toygun::update(float dt)
+void toygun::update(std::vector<engine::ref<enemy>> enemies, float dt)
 {
 	
 }

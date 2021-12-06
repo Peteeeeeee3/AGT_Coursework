@@ -113,7 +113,7 @@ example_layer::example_layer()
 	glm::vec3 spider_scale = glm::vec3(.01f);
 	m_spider_props.scale = spider_scale;
 	m_spider_props.position = glm::vec3(-25.f, 0.f, 0.f);
-	m_spider_props.bounding_shape = spider_model->size() / 2.f * spider_scale;
+	m_spider_props.bounding_shape = glm::vec3(200.f, 80.f, 1.f);
 
 	//set mech porperties
 	engine::ref<engine::model> mech_model = engine::model::create("assets/models/static/Mech_F_432/Material/mech_f_432.obj");
@@ -122,7 +122,7 @@ example_layer::example_layer()
 	glm::vec3 mech_scale = glm::vec3(.7f);
 	m_mech_props.scale = mech_scale;
 	m_mech_props.position = glm::vec3(-25.f, 0.f, 0.f);
-	m_mech_props.bounding_shape = glm::vec3(5.f, 7.f, 3.f);
+	m_mech_props.bounding_shape = glm::vec3(5.f, 6.f, 2.f);
 
 	//set claptrap properties
 	engine::ref<engine::model> claptrap_model = engine::model::create("assets/models/static/claptrap/Modeldatei/Claptrap3.obj");
@@ -131,7 +131,7 @@ example_layer::example_layer()
 	glm::vec3 claptrap_scale = glm::vec3(.3f);
 	m_claptrap_props.scale = claptrap_scale;
 	m_claptrap_props.position = glm::vec3(-25.f, 0.f, 0.f);
-	m_claptrap_props.bounding_shape = mech_model->size() / 2.f * mech_scale;
+	m_claptrap_props.bounding_shape = glm::vec3(3.f, 4.f, .8f);
 
 	//set ironman properties
 	engine::ref<engine::model> ironman_model = engine::model::create("assets/models/static/IronMan/IronMan.obj");
@@ -140,7 +140,7 @@ example_layer::example_layer()
 	glm::vec3 ironman_scale = glm::vec3(.01f);
 	m_ironman_props.scale = ironman_scale;
 	m_ironman_props.position = glm::vec3(-25.f, 0.f, 0.f);
-	m_ironman_props.bounding_shape = ironman_model->size() / 2.f * ironman_scale;
+	m_ironman_props.bounding_shape = glm::vec3(100.f, 250.f, 1.f);
 
 	// load toy gun model and create object. set its properties
 	engine::ref<engine::model> toygun_model = engine::model::create("assets/models/static/Toy_Gun/handgun-lo.obj");
@@ -241,7 +241,7 @@ void example_layer::on_update(const engine::timestep& time_step)
 			enemy->update(m_player, m_checkpoints, time_step);
 
 		for (auto tower : m_towers)
-			tower->update(time_step);
+			tower->update(m_active_enemies, time_step);
 		// update camera via player class
 		// this is separated from the camera class as I will need to make multiple cameras and I do not want their codes to interfere
 		// the player can be imagined as a floating camera with some attributes like health, score, etc.
@@ -507,6 +507,7 @@ void example_layer::new_wave()
 
 	++m_wave_number;
 	++m_enemy_count;
+	std::cout << "actual lenght of enemies vec: " << m_active_enemies.size() << "\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

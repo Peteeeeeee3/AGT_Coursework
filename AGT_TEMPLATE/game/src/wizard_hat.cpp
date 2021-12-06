@@ -4,7 +4,7 @@ wizard_hat::wizard_hat(const engine::game_object_properties& props, std::vector<
 {
 	m_damage = 10.f;
 	m_attack_speed = 10.f;
-	m_range = 10.f;
+	m_range = 1.f;
 	init_range();
 }
 
@@ -15,7 +15,7 @@ void wizard_hat::init()
 	m_elapsed = 0.f;
 }
 
-void wizard_hat::update(float dt) {}
+void wizard_hat::update(std::vector<engine::ref<enemy>> enemies, float dt) {}
 
 void wizard_hat::attack() {}
 

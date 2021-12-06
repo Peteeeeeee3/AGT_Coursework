@@ -11,7 +11,7 @@ public:
 	candle(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies);
 	~candle();
 	void init() override;
-	void update(float dt) override;
+	void update(std::vector<engine::ref<enemy>> enemies, float dt) override;
 	void attack() override;
 	engine::ref<billboard> flame() { return m_flame; }
 

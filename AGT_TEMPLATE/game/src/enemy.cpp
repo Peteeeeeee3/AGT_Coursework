@@ -12,7 +12,7 @@ void enemy::update(player& player, std::vector<glm::vec3> checkpoints, float dt)
 {
 	m_life_time += dt;
 
-	m_bounding_box.on_update(position());
+	m_bounding_box.on_update(glm::vec3(position().x, position().y, position().z));
 
 	if (m_health <= 0)
 		enemy::~enemy();
@@ -96,15 +96,14 @@ void enemy::update(player& player, std::vector<glm::vec3> checkpoints, float dt)
 		}
 		else
 		{
-			if (m_stun_timer.elapsed() == 0)
-			{
-				m_stun_timer.start();
-			}
-			if (m_stun_timer.elapsed() >= m_stun_duration)
+			std::cout << m_stun_timer << " " << m_stun_duration << "\n";
+			if (m_stun_timer >= m_stun_duration)
 			{
 				m_isStunned = false;
-				m_stun_timer.reset();
+				m_stun_timer = 0.f;
 			}
+			else
+				m_stun_timer += dt;
 		}
 	}
 }

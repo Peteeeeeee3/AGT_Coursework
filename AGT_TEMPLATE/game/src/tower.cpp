@@ -9,7 +9,7 @@ tower::~tower() {}
 
 void tower::init() {}
 
-void tower::update(float dt)
+void tower::update(std::vector<engine::ref<enemy>> enemies, float dt)
 {
 	
 }
