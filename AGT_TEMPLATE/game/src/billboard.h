@@ -10,7 +10,7 @@ public:
 	void on_update(const engine::timestep& time_step);
 	void on_render(const engine::perspective_camera& camera, engine::ref<engine::shader> shader);
 	void activate(glm::vec3 position, float width, float height);
-	//bool isActive() { return s_active; } 
+	bool isActive() { return s_active; } 
 
 	static engine::ref<billboard> create(std::string sprite_filename, uint32_t frame_width, uint32_t frame_height, uint32_t num_frames);
 private:

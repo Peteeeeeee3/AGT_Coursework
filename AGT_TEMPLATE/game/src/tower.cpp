@@ -2,7 +2,8 @@
 
 tower::tower(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies) : engine::game_object(props), m_active_enemies(enemies)
 {
-	
+	m_bounding_box = engine::bounding_box::bounding_box();
+	m_bounding_box.set_box(props.bounding_shape.x * props.scale.x, props.bounding_shape.y * props.scale.y, props.bounding_shape.z * props.bounding_shape.z, position());
 }
 
 tower::~tower() {}
@@ -11,7 +12,7 @@ void tower::init() {}
 
 void tower::update(std::vector<engine::ref<enemy>> enemies, float dt)
 {
-	
+	m_bounding_box.on_update(glm::vec3(position().x, position().y, position().z));
 }
 
 void tower::attack()
@@ -23,7 +24,7 @@ void tower::init_range()
 {
 	m_range_material = engine::material::create(0.0f, glm::vec3(0.0f, 0.f, 0.f),
 		glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.5f, 0.5f, 0.5f), .5f);
-	engine::ref<engine::circle> circle_shape = engine::circle::create(glm::vec3(position().x, position().y + .15f, position().z) , 300, m_range);
+	engine::ref<engine::circle> circle_shape = engine::circle::create(glm::vec3(0.f, 0.15f, 0.f) , 300, m_range);
 	engine::game_object_properties circle_props;
 	circle_props.position = position();
 	circle_props.meshes = { circle_shape->mesh() };

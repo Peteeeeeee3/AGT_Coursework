@@ -28,11 +28,12 @@ public:
 
 private:
 	//void check_bounce();
+	//engine::ref<billboard>							m_billboard{};
 
 	engine::ref<engine::skybox>			m_game_skybox{};
 	engine::ref<engine::skybox>			m_menu_skybox{};
 	engine::ref<engine::game_object>	m_terrain{};
-	engine::ref<wizard_hat>	m_cone{};
+	engine::ref<wizard_hat>				m_cone{};
 	engine::ref<candle>					m_candle{};
 	engine::ref<engine::cylinder>		m_candle_body{};
 	engine::ref<engine::pentahedron>	m_candle_flame{};
@@ -118,6 +119,8 @@ private:
 	////////////////
 
 	std::vector<engine::ref<tower>>		m_towers;
+	std::vector<engine::ref<candle>>	m_candles;
+	std::vector<engine::ref<wizard_hat>>m_wizards;
 
 	////////////////
 	//handling HUD

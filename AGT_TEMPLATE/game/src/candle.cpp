@@ -7,7 +7,7 @@ candle::candle(const engine::game_object_properties& props, std::vector<engine::
 	m_stun_duration = 3.f;
 	m_damage = 10.f;
 	m_attack_speed = 5.f;
-	m_range = 10.f;
+	m_range = 5.f;
 	init();
 	init_range();
 }
@@ -17,23 +17,27 @@ candle::~candle() {}
 void candle::init()
 {
 	m_elapsed = 0.f;
-	m_flame = billboard::create("assets/textures/fire1_64.png", 64, 64, 60);
-	m_flame->activate(glm::vec3(position().x, position().y + 4.5f, position().z), 30.f, 30.f);
+	m_flame = billboard::create("assets/textures/fire1_64.png", 10, 6, 60);
+	m_flame->activate(glm::vec3(position().x, position().y + 2.45f, position().z), .3f, .3f);
 }
 
 void candle::update(std::vector<engine::ref<enemy>> enemies, float dt)
 {
 	m_elapsed += dt;
 	m_active_enemies = enemies;
+	m_flame->on_update(dt);
+
 	if (m_elapsed >= m_attack_speed) {
 		m_elapsed = 0.f;
 		attack();
 	}
 
-	//if (!m_flame->isActive())
-	//{
-		//m_flame->activate(glm::vec3(position().x, position().y + 4.5f, position().z), 3.f, 3.f);
-	//}
+	//std::cout << m_flame->isActive() << "\n";
+	if (!m_flame->isActive())
+	{
+		//std::cout << "here\n";
+		m_flame->activate(glm::vec3(position().x, position().y + 2.45f, position().z), .3f, .3f);
+	}
 }
 
 void candle::attack()

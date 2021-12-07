@@ -15,10 +15,10 @@
 
 #include <iterator>
 
-template<typename Base, typename T>
-inline bool instanceof(const T*) {
-	return std::is_base_of<Base, T>::value;
-}
+//template<typename Base, typename T>
+//inline bool instanceof(const T*) {
+//	return std::is_base_of<Base, T>::value;
+//}
 
 example_layer::example_layer() 
     :m_2d_camera(-1.6f, 1.6f, -0.9f, 0.9f), 
@@ -107,7 +107,8 @@ example_layer::example_layer()
 	hud_init();
 
 	//set spider properties
-	engine::ref<engine::model> spider_model = engine::model::create("assets/models/static/spider/Only_Spider_with_Animations_Export.obj");
+	//engine::ref<engine::model> spider_model = engine::model::create("assets/models/static/spider/Only_Spider_with_Animations_Export.obj");
+	engine::ref<engine::model> spider_model = engine::model::create("assets/models/static/spider/spider.fbx");
 	m_spider_props.meshes = spider_model->meshes();
 	m_spider_props.textures = spider_model->textures();
 	glm::vec3 spider_scale = glm::vec3(.01f);
@@ -156,15 +157,17 @@ example_layer::example_layer()
 	m_menu_toygun_l = toygun::create(toygun_props, m_active_enemies);
 
 	engine::game_object_properties candle_props;
-	candle_props.position = { 0.f, 0.f, 0.f };
-	m_candle_body = engine::cylinder::create(150, 1.f, 4.f, candle_props.position);
-	m_candle_flame = engine::pentahedron::create(.5f, .5f, glm::vec3(candle_props.position.x, candle_props.position.y + 4.f, candle_props.position.z));
+	m_candle_body = engine::cylinder::create(150, 1.f, 4.f, glm::vec3(0.f, 0.f, 0.f));
+	m_candle_flame = engine::pentahedron::create(.5f, .5f, glm::vec3(0.f, 4.f, 0.f));
 	engine::ref<engine::texture_2d> candle_texture = engine::texture_2d::create("assets/textures/path.png", true);
+	candle_props.position = { 3.f, 0.f, 7.f };
 	candle_props.meshes = { m_candle_body->mesh(), m_candle_flame->mesh() };
 	candle_props.textures = { candle_texture };
 	candle_props.scale = glm::vec3(1.f);
+	candle_props.bounding_shape = glm::vec3(1.f, 2.f, 1.f);
 	m_candle = candle::create(candle_props, m_active_enemies);
 	m_towers.push_back(m_candle);
+	m_candles.push_back(m_candle);
 
 	//menu text 
 	engine::ref<engine::cuboid> container_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, 0.5f), false, false);
@@ -194,11 +197,13 @@ example_layer::example_layer()
 	engine::ref<engine::cone> cone_shape = engine::cone::create(150, 5.f, 3.f, glm::vec3(0.f, 0.f, 0.f));
 	engine::ref<engine::texture_2d> cone_texture = engine::texture_2d::create("assets/textures/wizard_hat.png", true);
 	engine::game_object_properties cone_props;
-	cone_props.position = { 5.f, 0.f, 0.f };
+	cone_props.position = { -5.f, 0.f, 0.f };
 	cone_props.meshes = { cone_shape->mesh() };
 	cone_props.textures = { cone_texture };
+	cone_props.bounding_shape = glm::vec3(2.5f, 2.5f, 1.5f);
 	m_cone = wizard_hat::create(cone_props, m_active_enemies);
 	m_towers.push_back(m_cone);
+	m_wizards.push_back(m_cone);
 
 	m_game_objects.push_back(m_terrain);
 	
@@ -207,6 +212,8 @@ example_layer::example_layer()
 	m_text_manager = engine::text_manager::create();
 
 	m_3d_camera.set_view_matrix(glm::vec3(0.f, 10.f, 0.f), glm::vec3(-5.f, 0.f, -5.f));
+
+	//m_billboard = billboard::create("assets/textures/fire1_64.tga", 10, 6, 60);
 }
 
 example_layer::~example_layer() {}
@@ -237,6 +244,7 @@ void example_layer::on_update(const engine::timestep& time_step)
 	}
 	else
 	{
+		//m_billboard->on_update(time_step);
 		for (auto enemy : m_active_enemies)
 			enemy->update(m_player, m_checkpoints, time_step);
 
@@ -254,14 +262,6 @@ void example_layer::on_update(const engine::timestep& time_step)
 		for (auto enemy : m_active_enemies)
 		{
 			enemy->update(m_player, m_checkpoints, time_step);
-		}
-
-		for (auto tower : m_towers)
-		{
-			if (instanceof<candle>(tower.get()))
-			{
-				std::dynamic_pointer_cast<candle>(tower)->flame()->on_update(time_step);
-			}
 		}
 	}
 } 
@@ -339,6 +339,7 @@ void example_layer::on_render()
 			glm::mat4 tower_transform(1.f);
 			tower_transform = glm::translate(tower_transform, tower->position());
 			tower_transform = glm::scale(tower_transform, glm::vec3(0.5f));
+			tower->bounding_box().on_render(1.f, 1.f, 0.f, mesh_shader);
 			engine::renderer::submit(mesh_shader, tower_transform, tower);
 			if (tower->to_render_range())
 				tower->render_range(mesh_shader);
@@ -360,20 +361,27 @@ void example_layer::on_render()
 			}
 		}
 
+		for (auto wiz : m_wizards)
+		{
+			for (auto bolt : wiz->bolt())
+				bolt->on_render(mesh_shader);
+		}
+
 		//render path
 		draw_path(mesh_shader);
 
 		engine::renderer::end_scene();
 
 		engine::renderer::begin_scene(m_3d_camera, mesh_shader);
-		for (auto tower : m_towers)
+		for (auto candle : m_candles)
 		{
-			if (instanceof<candle>(tower.get()))
-			{
-				std::dynamic_pointer_cast<candle>(tower)->flame()->on_render(m_3d_camera, mesh_shader);
-			}
+			candle->flame()->on_render(m_3d_camera, mesh_shader);
 		}
 		engine::renderer::end_scene();
+
+		//engine::renderer::begin_scene(m_3d_camera, mesh_shader);
+		//m_billboard->on_render(m_3d_camera, mesh_shader);
+		//engine::renderer::end_scene();
 
 		//render hud
 		hud_on_render(mesh_shader);
@@ -406,6 +414,10 @@ void example_layer::on_event(engine::event& event)
 			{
 				new_wave();
 			}
+			//if (e.key_code() == engine::key_codes::KEY_2)
+			//{
+			//	m_billboard->activate(glm::vec3(m_candle->position().x, m_candle->position().y + 4.5f, m_candle->position().z), 4.f, 4.f);
+			//}
 		}
 
 		if (e.key_code() == engine::key_codes::KEY_8)
@@ -502,7 +514,6 @@ void example_layer::new_wave()
 	for (int i = 0; i < m_enemy_count; ++i)
 	{	
 		m_active_enemies.push_back(enemy::create(m_spider_props, 50.f, 5.f, 3.f, 1.f * i, enemy::e_type::SPIDER));
-		std::cout << 5.f * i << "\n";
 	}
 
 	++m_wave_number;

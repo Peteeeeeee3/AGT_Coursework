@@ -8,6 +8,8 @@ engine::pentahedron::pentahedron(float height, float width, glm::vec3 center) : 
 	m_peak = m_center;
 	m_peak.y += m_height;
 
+	std::cout << "pentahedron position: " << m_center << "\n";
+
 	//calculate the vertices
 	std::vector<glm::vec3> pent_vec_vertices;
 	pent_vec_vertices.push_back(glm::vec3(m_center.x - width / 2, m_center.y, m_center.z - width / 2)); //front left

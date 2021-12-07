@@ -22,6 +22,7 @@ public:
 	void render_range(engine::ref<engine::shader> shader);
 	bool to_render_range() { return m_to_render_range; }
 	void set_to_render_range(bool to_render_range) { m_to_render_range = to_render_range; }
+	engine::bounding_box bounding_box() { return m_bounding_box; }
 
 	static engine::ref<tower> create(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies);
 
@@ -36,4 +37,5 @@ protected:
 	engine::ref<engine::game_object>		m_range_highlight;
 	bool									m_to_render_range = true;
 	engine::ref<engine::material>			m_range_material{};
+	engine::bounding_box					m_bounding_box;
 };

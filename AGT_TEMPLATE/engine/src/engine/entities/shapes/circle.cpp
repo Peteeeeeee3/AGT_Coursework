@@ -23,7 +23,6 @@ engine::circle::circle(glm::vec3 position, uint32_t triangles, float r) : m_cent
 	for (int i = 0; i < m_triangles; ++i)
 	{
 		asd++;
-		std::cout << asd << "\n";
 		// calculate x and y values of right point
 		x = m_radius * glm::sin(step_size * i);
 		z = m_radius * glm::cos(step_size * i);

@@ -43,12 +43,6 @@ void player::update_camera(engine::perspective_camera& camera, const engine::tim
 	else if (engine::input::key_pressed(engine::key_codes::KEY_LEFT_CONTROL)) // down
 		move(down, camera, ts);
 
-	//update rotation
-	if (engine::input::key_pressed(engine::key_codes::KEY_Q)) // left
-		rotate(left, camera, ts);
-	else if (engine::input::key_pressed(engine::key_codes::KEY_E)) // right
-		rotate(right, camera, ts);
-
 	// assign values
 	camera.set_view_matrix(m_position, m_lookAt);
 	camera.on_update(ts);

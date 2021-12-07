@@ -47,6 +47,7 @@ engine::cylinder::cylinder(uint32_t sections, float radius, float height, glm::v
 		//assign coordinates
 		c_right = glm::vec3(x, c_y, z);
 		b_right = glm::vec3(x, b_y, z);
+		std::cout << "ceiling right: " << c_right << " peak: " << m_peak << "\n";
 		//std::cout << "c: " << c_right << " b: " << b_right << "\n";
 		//ceiling normal
 		c_normal = glm::cross(m_peak - c_left, m_peak - c_right);
@@ -95,9 +96,10 @@ engine::cylinder::cylinder(uint32_t sections, float radius, float height, glm::v
 		c_left = c_right;
 		b_left = b_right;
 	}
-	std::cout << cyl_vertices.size() << " " << cyl_indices.size() << "\n";
 
 	m_mesh = engine::mesh::create(cyl_vertices, cyl_indices);
+	for (auto entry : cyl_vertices)
+		std::cout << "Cylinder:\n" << entry.position << "\n";
 }
 
 engine::cylinder::~cylinder() {}
