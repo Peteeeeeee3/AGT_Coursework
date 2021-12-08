@@ -37,6 +37,7 @@ private:
 	engine::ref<candle>					m_candle{};
 	engine::ref<engine::cylinder>		m_candle_body{};
 	engine::ref<engine::pentahedron>	m_candle_flame{};
+	engine::ref<toygun>					m_game_gun{};
 
 	//menu componenets
 	engine::ref<toygun>					m_menu_toygun_r{};
@@ -119,8 +120,6 @@ private:
 	////////////////
 
 	std::vector<engine::ref<tower>>		m_towers;
-	std::vector<engine::ref<candle>>	m_candles;
-	std::vector<engine::ref<wizard_hat>>m_wizards;
 
 	////////////////
 	//handling HUD

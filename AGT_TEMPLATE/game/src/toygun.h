@@ -1,6 +1,7 @@
 #pragma once
 #include <engine.h>
 #include "tower.h"
+#include "bullet.h"
 
 class toygun : public tower
 {
@@ -12,15 +13,17 @@ public:
 	void rotate(bool rotate_left, float dt);
 	void attack() override;
 	engine::ref<enemy> find_target();
+	void render_bullets(engine::ref<engine::shader> shader);
 
 	static engine::ref<toygun> create(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies);
 
 private:
-	bool movingUp = true;
-	float m_mSpeed = 0.25f;
+	bool							movingUp = true;
+	float							m_mSpeed = 0.25f;
 
-	engine::ref<enemy> m_target;
+	engine::ref<enemy>				m_target;
 
-	std::vector<engine::ref<engine::game_object>>	m_bullets;
-	engine::game_object_properties					m_bullet_props;
+	std::vector<bullet>				m_bullets;
+	engine::game_object_properties	m_bullet_props;
+	glm::vec3						m_forward_vec;
 };

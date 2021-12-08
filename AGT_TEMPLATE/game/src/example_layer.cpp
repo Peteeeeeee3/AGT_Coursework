@@ -13,12 +13,14 @@
 #include "quad.h"
 #include "candle.h"
 
+#include <typeinfo>
+
 #include <iterator>
 
-//template<typename Base, typename T>
-//inline bool instanceof(const T*) {
-//	return std::is_base_of<Base, T>::value;
-//}
+template<typename Base, typename T>
+inline bool instanceof(const T*) {
+	return std::is_base_of<Base, T>::value;
+}
 
 example_layer::example_layer() 
     :m_2d_camera(-1.6f, 1.6f, -0.9f, 0.9f), 
@@ -114,7 +116,7 @@ example_layer::example_layer()
 	glm::vec3 spider_scale = glm::vec3(.01f);
 	m_spider_props.scale = spider_scale;
 	m_spider_props.position = glm::vec3(-25.f, 0.f, 0.f);
-	m_spider_props.bounding_shape = glm::vec3(200.f, 80.f, 1.f);
+	m_spider_props.bounding_shape = glm::vec3(200.f, 160.f, 1.f);
 
 	//set mech porperties
 	engine::ref<engine::model> mech_model = engine::model::create("assets/models/static/Mech_F_432/Material/mech_f_432.obj");
@@ -151,10 +153,13 @@ example_layer::example_layer()
 	float toygun_scale = 0.0125f;
 	toygun_props.position = { -3.f, 3.f, 8.f };
 	toygun_props.scale = glm::vec3(toygun_scale);
-	toygun_props.bounding_shape = toygun_model->size() / 2.f * toygun_scale;
 	m_menu_toygun_r = toygun::create(toygun_props, m_active_enemies);
 	toygun_props.position = { 3.f, 3.f, 8.f };
 	m_menu_toygun_l = toygun::create(toygun_props, m_active_enemies);
+	toygun_props.position = { 5.f, 0.f, 2.f };
+	toygun_props.bounding_shape = glm::vec3(100.f, 100.f, 1.2f);
+	m_game_gun = toygun::create(toygun_props, m_active_enemies);
+	m_towers.push_back(m_game_gun);
 
 	engine::game_object_properties candle_props;
 	m_candle_body = engine::cylinder::create(150, 1.f, 4.f, glm::vec3(0.f, 0.f, 0.f));
@@ -167,7 +172,6 @@ example_layer::example_layer()
 	candle_props.bounding_shape = glm::vec3(1.f, 2.f, 1.f);
 	m_candle = candle::create(candle_props, m_active_enemies);
 	m_towers.push_back(m_candle);
-	m_candles.push_back(m_candle);
 
 	//menu text 
 	engine::ref<engine::cuboid> container_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, 0.5f), false, false);
@@ -203,7 +207,6 @@ example_layer::example_layer()
 	cone_props.bounding_shape = glm::vec3(2.5f, 2.5f, 1.5f);
 	m_cone = wizard_hat::create(cone_props, m_active_enemies);
 	m_towers.push_back(m_cone);
-	m_wizards.push_back(m_cone);
 
 	m_game_objects.push_back(m_terrain);
 	
@@ -258,11 +261,6 @@ void example_layer::on_update(const engine::timestep& time_step)
 		m_physics_manager->dynamics_world_update(m_game_objects, double(time_step));
 
 		m_audio_manager->update_with_camera(m_3d_camera);
-
-		for (auto enemy : m_active_enemies)
-		{
-			enemy->update(m_player, m_checkpoints, time_step);
-		}
 	}
 } 
 
@@ -337,12 +335,29 @@ void example_layer::on_render()
 		for (auto tower : m_towers)
 		{
 			glm::mat4 tower_transform(1.f);
-			tower_transform = glm::translate(tower_transform, tower->position());
-			tower_transform = glm::scale(tower_transform, glm::vec3(0.5f));
+			
+			std::string name = typeid(*tower.get()).name();
+			if (name == "class toygun")
+			{
+				tower_transform = glm::translate(tower_transform, glm::vec3(tower->position().x, tower->position().y + 1.f, tower->position().z));
+				tower_transform = glm::rotate(tower_transform, tower->rotation_amount(), glm::vec3(0.f, 1.f, 0.f));
+				tower_transform = glm::scale(tower_transform, glm::vec3(0.025f));
+				std::dynamic_pointer_cast<toygun>(tower)->render_bullets(mesh_shader);
+			}
+			else
+			{
+				tower_transform = glm::translate(tower_transform, tower->position());
+				tower_transform = glm::scale(tower_transform, glm::vec3(0.5f));
+			}
 			tower->bounding_box().on_render(1.f, 1.f, 0.f, mesh_shader);
 			engine::renderer::submit(mesh_shader, tower_transform, tower);
 			if (tower->to_render_range())
 				tower->render_range(mesh_shader);
+			if (name == "class wizard_hat")
+			{
+				for (auto bolt : std::dynamic_pointer_cast<wizard_hat>(tower)->bolt())
+					bolt->on_render(mesh_shader);
+			}
 		}
 
 		//render enemies
@@ -361,21 +376,18 @@ void example_layer::on_render()
 			}
 		}
 
-		for (auto wiz : m_wizards)
-		{
-			for (auto bolt : wiz->bolt())
-				bolt->on_render(mesh_shader);
-		}
-
 		//render path
 		draw_path(mesh_shader);
 
 		engine::renderer::end_scene();
 
 		engine::renderer::begin_scene(m_3d_camera, mesh_shader);
-		for (auto candle : m_candles)
+		for (auto tower : m_towers)
 		{
-			candle->flame()->on_render(m_3d_camera, mesh_shader);
+			std::string name = typeid(*tower.get()).name();
+
+			if (name == "class candle")
+				std::dynamic_pointer_cast<candle>(tower)->flame()->on_render(m_3d_camera, mesh_shader);
 		}
 		engine::renderer::end_scene();
 
@@ -518,7 +530,6 @@ void example_layer::new_wave()
 
 	++m_wave_number;
 	++m_enemy_count;
-	std::cout << "actual lenght of enemies vec: " << m_active_enemies.size() << "\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -12,10 +12,10 @@ void enemy::update(player& player, std::vector<glm::vec3> checkpoints, float dt)
 {
 	m_life_time += dt;
 
-	m_bounding_box.on_update(glm::vec3(position().x, position().y, position().z));
+	m_bounding_box.on_update(position());
 
 	if (m_health <= 0)
-		enemy::~enemy();
+		m_isDead = true;
 
 	if (toRender())
 	{
@@ -96,7 +96,6 @@ void enemy::update(player& player, std::vector<glm::vec3> checkpoints, float dt)
 		}
 		else
 		{
-			std::cout << m_stun_timer << " " << m_stun_duration << "\n";
 			if (m_stun_timer >= m_stun_duration)
 			{
 				m_isStunned = false;
