@@ -14,10 +14,12 @@ toygun::~toygun() {}
 void toygun::init()
 {
 	m_elapsed = 0.f;
+	engine::ref<engine::texture_2d> bullet_texture = engine::texture_2d::create("assets/textures/orange.png", true);
 	engine::ref<engine::sphere> bullet_shape = engine::sphere::create(10, 20, .1f);
 	m_bullet_props.position = position();
 	m_bullet_props.position.y += 1.f;
 	m_bullet_props.meshes = { bullet_shape->mesh() };
+	m_bullet_props.textures = { bullet_texture };
 	m_bullet_props.type = 1;
 	m_bullet_props.bounding_shape = glm::vec3(.1f);
 }
