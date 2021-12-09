@@ -28,6 +28,8 @@ public:
 	float health() { return m_health; }
 	float score() { return m_score; }
 	void set_score(float ns) { m_score = ns; }
+	void cam_reset() { m_reset_cam = true; }
+
 	//void scroll_handling(const engine::timestep& time_step);
 
 private:
@@ -40,14 +42,13 @@ private:
 	//player score
 	float m_score = 1000;
 
+	bool m_reset_cam = false;
 
 	glm::vec3 m_position;
 	glm::vec3 m_lookAt;
 	glm::vec3 z_axis = glm::vec3(0.f, 0.f, 1.f); //stored for convenience
 
 	float m_view_distance; // distance from player to look_at
-	float m_current_angle; // angle from player to z-axis
-	float m_rotation_speed = 0.5f; 
 
 	// defines playable and traversable area
 	std::vector<float> m_camera_bounds{
@@ -57,6 +58,6 @@ private:
 		-20.f,	20.f	//z
 	};
 
+	void reset_camera(engine::perspective_camera& camera);
 	void move(e_direction direction, engine::perspective_camera& camera, engine::timestep ts);
-	void rotate(e_direction direction, engine::perspective_camera& camera, engine::timestep ts);
 };

@@ -94,7 +94,7 @@ void engine::perspective_camera::on_update(const timestep& timestep)
 {
     // commented out interfering code
 
-	auto [mouse_delta_x, mouse_delta_y] = input::mouse_position();
+	//auto [mouse_delta_x, mouse_delta_y] = input::mouse_position();
     //std::cout << mouse_delta_x << " " << mouse_delta_y << "\n";
 	//process_mouse(mouse_delta_x, mouse_delta_y);
 
@@ -133,7 +133,7 @@ void engine::perspective_camera::process_mouse(float mouse_delta_x, float mouse_
     mouse_delta_x *= s_mouse_sensitivity;
     mouse_delta_y *= s_mouse_sensitivity;
 
-    /*m_yaw   += mouse_delta_x;
+    m_yaw   += mouse_delta_x;
     m_pitch += mouse_delta_y;
 
     // Make sure that when pitch is out of bounds, screen doesn't get flipped
@@ -144,7 +144,7 @@ void engine::perspective_camera::process_mouse(float mouse_delta_x, float mouse_
             m_pitch = pitch_limit;
         if(m_pitch < -pitch_limit)
             m_pitch = -pitch_limit;
-    }*/
+    }
 }
 
 void engine::perspective_camera::move(e_direction direction, timestep ts) 

@@ -2,7 +2,7 @@
 
 toygun::toygun(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies) : tower(props, enemies)
 {
-	m_damage = 25.f;
+	m_damage = 20.f;
 	m_attack_speed = 1.f;
 	m_range = 10.f;
 	init();

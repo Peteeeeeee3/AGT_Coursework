@@ -143,8 +143,13 @@ namespace engine
 
         void rotate(e_rotation rotation, e_axis rotation_axis, timestep ts);
 
-    private: 
         void process_mouse(float mouse_delta_x, float mouse_delta_y, bool constrain_pitch = true);
+
+        void reset_yaw() { m_yaw = YAW; }
+        void reset_pitch() { m_pitch = PITCH; }
+        void set_position(glm::vec3 position) { m_position = position; }
+
+    private: 
         void move(e_direction direction, timestep ts); 
         void update_camera_vectors();
         void update_view_matrix();

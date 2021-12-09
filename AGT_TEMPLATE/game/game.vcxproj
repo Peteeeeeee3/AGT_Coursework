@@ -139,6 +139,7 @@
     <ClInclude Include="src\lightning_bolt.h" />
     <ClInclude Include="src\player.h" />
     <ClInclude Include="src\quad.h" />
+    <ClInclude Include="src\shockwave.h" />
     <ClInclude Include="src\tower.h" />
     <ClInclude Include="src\toygun.h" />
     <ClInclude Include="src\wizard_hat.h" />
@@ -153,6 +154,7 @@
     <ClCompile Include="src\lightning_bolt.cpp" />
     <ClCompile Include="src\player.cpp" />
     <ClCompile Include="src\quad.cpp" />
+    <ClCompile Include="src\shockwave.cpp" />
     <ClCompile Include="src\tower.cpp" />
     <ClCompile Include="src\toygun.cpp" />
     <ClCompile Include="src\wizard_hat.cpp" />

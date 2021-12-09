@@ -62,8 +62,13 @@ private:
 	float								m_prev_sphere_y_vel = 0.f;
 	engine::ref<engine::text_manager>	m_text_manager{};
 
+	/////////////////
+	//canmera handling
+	/////////////////
+
     engine::orthographic_camera			m_2d_camera; 
     engine::perspective_camera			m_3d_camera;
+	engine::ref<candle>					m_active_candle_cam;
 
 	/////////////////
 	//path of enemies

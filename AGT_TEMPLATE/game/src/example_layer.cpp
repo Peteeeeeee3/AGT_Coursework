@@ -26,9 +26,9 @@ example_layer::example_layer()
     :m_2d_camera(-1.6f, 1.6f, -0.9f, 0.9f), 
     m_3d_camera((float)engine::application::window().width(), (float)engine::application::window().height())
 {
-    // Hide the mouse and lock it inside the window
-    //engine::input::anchor_mouse(true);
-    //engine::application::window().hide_mouse_cursor();
+	// Hide the mouse and lock it inside the window
+	//engine::input::anchor_mouse(true);
+	//engine::application::window().hide_mouse_cursor();
 
 	// Initialise audio and play background music
 	m_audio_manager = engine::audio_manager::instance();
@@ -201,7 +201,7 @@ example_layer::example_layer()
 	engine::ref<engine::cone> cone_shape = engine::cone::create(150, 5.f, 3.f, glm::vec3(0.f, 0.f, 0.f));
 	engine::ref<engine::texture_2d> cone_texture = engine::texture_2d::create("assets/textures/wizard_hat.png", true);
 	engine::game_object_properties cone_props;
-	cone_props.position = { -5.f, 0.f, 0.f };
+	cone_props.position = { -13.f, 0.f, -3.f };
 	cone_props.meshes = { cone_shape->mesh() };
 	cone_props.textures = { cone_texture };
 	cone_props.bounding_shape = glm::vec3(2.5f, 2.5f, 1.5f);
@@ -252,11 +252,34 @@ void example_layer::on_update(const engine::timestep& time_step)
 			enemy->update(m_player, m_checkpoints, time_step);
 
 		for (auto tower : m_towers)
+		{
 			tower->update(m_active_enemies, time_step);
+			std::string name = typeid(*tower.get()).name();
+			if (name == "class candle")
+			{
+				if (std::dynamic_pointer_cast<candle>(tower)->active_cam())
+				{
+					m_active_candle_cam = std::dynamic_pointer_cast<candle>(tower);
+					break;
+				}
+				else
+				{
+					m_active_candle_cam = nullptr;
+				}
+			}
+		}
 		// update camera via player class
 		// this is separated from the camera class as I will need to make multiple cameras and I do not want their codes to interfere
 		// the player can be imagined as a floating camera with some attributes like health, score, etc.
-		m_player.update_camera(m_3d_camera, time_step);
+		if (m_active_candle_cam == nullptr)
+		{
+			m_3d_camera.on_update(time_step);
+			m_player.update_camera(m_3d_camera, time_step);
+		}
+		else
+		{
+			m_active_candle_cam->turret_camera(m_3d_camera, time_step);
+		}
 
 		m_physics_manager->dynamics_world_update(m_game_objects, double(time_step));
 
@@ -355,8 +378,7 @@ void example_layer::on_render()
 				tower->render_range(mesh_shader);
 			if (name == "class wizard_hat")
 			{
-				for (auto bolt : std::dynamic_pointer_cast<wizard_hat>(tower)->bolt())
-					bolt->on_render(mesh_shader);
+				std::dynamic_pointer_cast<wizard_hat>(tower)->lightning().on_render(mesh_shader);
 			}
 		}
 
@@ -426,10 +448,28 @@ void example_layer::on_event(engine::event& event)
 			{
 				new_wave();
 			}
-			//if (e.key_code() == engine::key_codes::KEY_2)
-			//{
-			//	m_billboard->activate(glm::vec3(m_candle->position().x, m_candle->position().y + 4.5f, m_candle->position().z), 4.f, 4.f);
-			//}
+			if (e.key_code() == engine::key_codes::KEY_C)
+			{
+				for (auto tower : m_towers)
+				{
+					std::string name = typeid(*tower.get()).name();
+					if (name == "class candle")
+					{
+						if (std::dynamic_pointer_cast<candle>(tower)->active_cam())
+						{
+							std::dynamic_pointer_cast<candle>(tower)->toggle_cam(false);
+							engine::application::window().show_mouse_cursor();
+							m_player.cam_reset();
+						}
+						else
+						{
+							std::dynamic_pointer_cast<candle>(tower)->toggle_cam(true);
+							engine::application::window().hide_mouse_cursor();
+						}
+						break;
+					}
+				}
+			}
 		}
 
 		if (e.key_code() == engine::key_codes::KEY_8)
@@ -464,7 +504,7 @@ void example_layer::init_path()
 	for (int i = 0; i < m_pp_positions.size(); ++i)
 	{
 		//cast the iterater as it was complaining and this solve it. something about 4 byte and 8 byte values
-		glm::vec3 size = glm::vec3(fabs(m_checkpoints[static_cast<size_t>(i) + 1].x - m_checkpoints[i].x) / 2, 1.f, fabs(m_checkpoints[static_cast<size_t>(i) + 1].z - m_checkpoints[i].z) / 2);
+		glm::vec3 size = glm::vec3(fabs(m_checkpoints[static_cast<size_t>(i) + 1].x - m_checkpoints[i].x) / 2 + 0.5f, 1.f, fabs(m_checkpoints[static_cast<size_t>(i) + 1].z - m_checkpoints[i].z) / 2 + 0.5f);
 		if (size.x == 0.f)
 			size.x += .5f;
 		if (size.z == 0.f)
@@ -530,6 +570,7 @@ void example_layer::new_wave()
 
 	++m_wave_number;
 	++m_enemy_count;
+	std::cout << "actual lenght of enemies vec: " << m_active_enemies.size() << "\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

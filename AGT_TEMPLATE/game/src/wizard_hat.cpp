@@ -14,35 +14,35 @@ wizard_hat::~wizard_hat() {}
 void wizard_hat::init()
 {
 	m_elapsed = 0.f;
-	m_lightning_direction = glm::vec3(0.f, -1.f, 0.f);
-	m_bolt.push_back(lightning_bolt::create(position(), m_lightning_direction, 1.f));
+	m_lightning.initialise();
 }
 
 void wizard_hat::update(std::vector<engine::ref<enemy>> enemies, float dt)
 {
 	m_elapsed += dt;
 
-	for (auto bolt : m_bolt)
-		bolt->on_update(dt);
+	m_active_enemies = enemies;
+
+	m_lightning.on_update(dt);
 
 	if (m_elapsed >= m_attack_speed)
 	{
 		m_elapsed = 0.f;
-		attack();
+		if (m_active_enemies.size() > 0)
+			attack();
 	}
 }
 
 void wizard_hat::attack()
 {
-	//generate random x value
-	float x = (position().x - m_range) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / ((position().x + m_range) - (position().x - m_range))));
-	//generate random z value
-	float z = (position().z - m_range) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / ((position().z + m_range) - (position().z - m_range))));
+	m_lightning.activate(m_range, glm::vec3(position().x, position().y + 0.18f, position().z));
 
-	for (auto bolt : m_bolt)
+	for (auto enemy : m_active_enemies)
 	{
-		bolt->setPosition(glm::vec3(x, 5.f, z));
-		//bolt->activate(glm::vec3(x, 0.f, z), m_lightning_direction);
+		if (glm::length(enemy->position() - position()) <= m_range)
+		{
+			enemy->damage(m_damage);
+		}
 	}
 }
 

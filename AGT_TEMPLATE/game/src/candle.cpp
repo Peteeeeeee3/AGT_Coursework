@@ -1,4 +1,6 @@
 #include "candle.h"
+#include "pch.h"
+#include "engine/core/input.h"
 
 candle::candle(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies) : tower(props, enemies)
 {
@@ -36,6 +38,14 @@ void candle::update(std::vector<engine::ref<enemy>> enemies, float dt)
 	{
 		m_flame->activate(glm::vec3(position().x, position().y + 2.45f, position().z), .3f, .3f);
 	}
+}
+
+void candle::turret_camera(engine::perspective_camera& camera, float dt)
+{
+	auto [mouse_delta_x, mouse_delta_y] = engine::input::mouse_position();
+	camera.process_mouse(mouse_delta_x, mouse_delta_y);
+	camera.set_view_matrix(glm::vec3(position().x, position().y + 2.f, position().z), glm::vec3(position().x, position().y + 2.f, position().z) + glm::normalize(camera.front_vector()));
+	camera.on_update(dt);
 }
 
 void candle::attack()

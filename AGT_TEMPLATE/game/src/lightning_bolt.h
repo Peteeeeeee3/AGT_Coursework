@@ -11,6 +11,7 @@ public:
 	void on_update(const engine::timestep& time_step);
 	void on_render(engine::ref<engine::shader> shader);
 	void activate(glm::vec3 position, glm::vec3 direction);
+	bool active() { return s_active; }
 
 	void setPosition(glm::vec3 position) { m_position = position; }
 
