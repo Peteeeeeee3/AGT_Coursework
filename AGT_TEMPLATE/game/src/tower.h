@@ -1,7 +1,6 @@
 #pragma once
 #include <engine.h>
 #include "enemy.h"
-#include "engine/utils/timer.h"
 
 // the current state of this class is only temporary
 // this class will be redeveloped to support towers in general
@@ -15,10 +14,10 @@ public:
 	virtual void init();
 	virtual void update(std::vector<engine::ref<enemy>> enemies, float dt);
 	virtual void attack();
-	virtual void upgradeRight_lvl1();
-	virtual void upgradeRight_lvl2();
-	virtual void upgradeLeft_lvl1();
-	virtual void upgradeLeft_lvl2();
+	virtual void upgradeRight_lvl1(player& player);
+	virtual void upgradeRight_lvl2(player& player);
+	virtual void upgradeLeft_lvl1(player& player);
+	virtual void upgradeLeft_lvl2(player& player);
 	void render_range(engine::ref<engine::shader> shader);
 	bool to_render_range() { return m_to_render_range; }
 	void set_to_render_range(bool to_render_range) { m_to_render_range = to_render_range; }
@@ -35,7 +34,7 @@ protected:
 	std::vector<engine::ref<enemy>>			m_active_enemies;
 	float									m_elapsed;
 	engine::ref<engine::game_object>		m_range_highlight;
-	bool									m_to_render_range = true;
+	bool									m_to_render_range = false;
 	engine::ref<engine::material>			m_range_material{};
 	engine::bounding_box					m_bounding_box;
 };

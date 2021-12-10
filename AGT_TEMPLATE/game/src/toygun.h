@@ -12,6 +12,10 @@ public:
 	void update(std::vector<engine::ref<enemy>> enemies, float dt) override;
 	void rotate(bool rotate_left, float dt);
 	void attack() override;
+	virtual void upgradeRight_lvl1(player& player) override;
+	virtual void upgradeRight_lvl2(player& player) override;
+	virtual void upgradeLeft_lvl1(player& player) override;
+	virtual void upgradeLeft_lvl2(player& player) override;
 	engine::ref<enemy> find_target();
 	void render_bullets(engine::ref<engine::shader> shader);
 

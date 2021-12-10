@@ -249,7 +249,7 @@ void example_layer::on_update(const engine::timestep& time_step)
 	{
 		//m_billboard->on_update(time_step);
 		for (auto enemy : m_active_enemies)
-			enemy->update(m_player, m_checkpoints, time_step);
+			enemy->update(m_player, m_active_enemies, m_checkpoints, time_step);
 
 		for (auto tower : m_towers)
 		{
@@ -260,6 +260,11 @@ void example_layer::on_update(const engine::timestep& time_step)
 				if (std::dynamic_pointer_cast<candle>(tower)->active_cam())
 				{
 					m_active_candle_cam = std::dynamic_pointer_cast<candle>(tower);
+					std::dynamic_pointer_cast<candle>(tower)->update_shot(m_3d_camera, time_step);
+					if (!std::dynamic_pointer_cast<candle>(tower)->shot().physics_bound())
+						m_game_objects.push_back(std::dynamic_pointer_cast<candle>(tower)->shot().object());
+					if (std::dynamic_pointer_cast<candle>(tower)->shot().to_remove())
+						std::dynamic_pointer_cast<candle>(tower)->reset_shot();
 					break;
 				}
 				else
@@ -372,7 +377,7 @@ void example_layer::on_render()
 				tower_transform = glm::translate(tower_transform, tower->position());
 				tower_transform = glm::scale(tower_transform, glm::vec3(0.5f));
 			}
-			tower->bounding_box().on_render(1.f, 1.f, 0.f, mesh_shader);
+			//tower->bounding_box().on_render(1.f, 1.f, 0.f, mesh_shader);
 			engine::renderer::submit(mesh_shader, tower_transform, tower);
 			if (tower->to_render_range())
 				tower->render_range(mesh_shader);
@@ -380,6 +385,8 @@ void example_layer::on_render()
 			{
 				std::dynamic_pointer_cast<wizard_hat>(tower)->lightning().on_render(mesh_shader);
 			}
+			if (name == "class candle")
+				std::dynamic_pointer_cast<candle>(tower)->shot().on_render(mesh_shader);
 		}
 
 		//render enemies
@@ -388,11 +395,18 @@ void example_layer::on_render()
 			for (int i = 0; i < m_active_enemies.size(); ++i)
 			{
 				if (m_active_enemies.at(i)->isDead())
+				{
+					std::cout << m_active_enemies.at(i)->state() << "\n";
+					if (m_active_enemies.at(i)->state() != 8)
+						m_player.set_score(m_player.score() + m_active_enemies.at(i)->strength());
+					else
+						m_player.set_score(m_player.score() - m_active_enemies.at(i)->strength());
 					m_active_enemies.erase(m_active_enemies.begin() + i);
+				}
 				else
 					if (m_active_enemies.at(i)->toRender())
 					{
-						m_active_enemies.at(i)->bounding_box().on_render(1.f, 0.f, 0.f, mesh_shader);
+						//m_active_enemies.at(i)->bounding_box().on_render(1.f, 0.f, 0.f, mesh_shader);
 						engine::renderer::submit(mesh_shader, m_active_enemies.at(i));
 					}
 			}
@@ -412,10 +426,6 @@ void example_layer::on_render()
 				std::dynamic_pointer_cast<candle>(tower)->flame()->on_render(m_3d_camera, mesh_shader);
 		}
 		engine::renderer::end_scene();
-
-		//engine::renderer::begin_scene(m_3d_camera, mesh_shader);
-		//m_billboard->on_render(m_3d_camera, mesh_shader);
-		//engine::renderer::end_scene();
 
 		//render hud
 		hud_on_render(mesh_shader);
@@ -471,9 +481,6 @@ void example_layer::on_event(engine::event& event)
 				}
 			}
 		}
-
-		if (e.key_code() == engine::key_codes::KEY_8)
-			m_player.damage(5);
 
 		// menu controls
 		if(inMenu)
@@ -551,7 +558,7 @@ void example_layer::new_wave()
 	{
 		for (int i = 0; i < m_wave_number / 5; ++i)
 		{
-			m_active_enemies.push_back(enemy::create(m_mech_props, 150.f, 20.f, 0.65f, 8.f * i, enemy::e_type::MECH));
+			m_active_enemies.push_back(enemy::create(m_mech_props, 500.f, 20.f, 0.65f, 8.f * i, enemy::e_type::MECH));
 		}
 	}
 
@@ -559,7 +566,7 @@ void example_layer::new_wave()
 	{
 		for (int i = 0; i < m_wave_number / 10; ++i)
 		{
-			m_active_enemies.push_back(enemy::create(m_ironman_props, 300.f, 50.f, 0.4f, 5.f * i, enemy::e_type::IRONMAN));
+			m_active_enemies.push_back(enemy::create(m_ironman_props, 1000.f, 50.f, 0.4f, 5.f * i, enemy::e_type::IRONMAN));
 		}
 	}
 
@@ -570,7 +577,6 @@ void example_layer::new_wave()
 
 	++m_wave_number;
 	++m_enemy_count;
-	std::cout << "actual lenght of enemies vec: " << m_active_enemies.size() << "\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -580,9 +586,11 @@ void example_layer::hud_on_render(engine::ref<engine::shader> shader)
 {
 	const auto text_shader = engine::renderer::shaders_library()->get("text_2D");
 	//render score
-	m_text_manager->render_text(text_shader, "Score: " + std::to_string((int) m_player.score()), (float) engine::application::window().width() / 2.f - 90.f, (float)engine::application::window().height() - 40.f, .75f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+	m_text_manager->render_text(text_shader, "Score: " + std::to_string((int) m_player.score()), (float) engine::application::window().width() / 2.f - 90.f, (float)engine::application::window().height() - 65.f, .75f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
 	//render health
 	m_text_manager->render_text(text_shader, std::to_string((int) m_player.health()), 135.f, (float) engine::application::window().height() - 65.f, .55f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+	//wave number
+	m_text_manager->render_text(text_shader, "Wave: " + std::to_string((int)m_wave_number), (float) engine::application::window().width() - 135.f, (float) engine::application::window().height() - 65.f, .55f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
 
 	engine::renderer::begin_scene(m_2d_camera, shader);
 	////////////////

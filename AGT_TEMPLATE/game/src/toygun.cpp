@@ -4,7 +4,7 @@ toygun::toygun(const engine::game_object_properties& props, std::vector<engine::
 {
 	m_damage = 20.f;
 	m_attack_speed = 1.f;
-	m_range = 10.f;
+	m_range = 8.f;
 	init();
 	init_range();
 }
@@ -113,6 +113,52 @@ void toygun::render_bullets(engine::ref<engine::shader> shader)
 	for (auto bullet : m_bullets)
 	{
 		engine::renderer::submit(shader, bullet.object());
+	}
+}
+
+//range
+void toygun::upgradeRight_lvl1(player& player)
+{
+	int cost = 250;
+	if (player.score() >= cost)
+	{
+		m_range = 12.f;
+		//subtract cost from score
+		player.set_score(player.score() - cost);
+	}
+}
+
+void toygun::upgradeRight_lvl2(player& player)
+{
+	int cost = 750;
+	if (player.score() >= cost)
+	{
+		m_range = 20.f;
+		//subtract cost from score
+		player.set_score(player.score() - cost);
+	}
+}
+
+//fire rate
+void toygun::upgradeLeft_lvl1(player& player)
+{
+	int cost = 300;
+	if (player.score() >= cost)
+	{
+		m_attack_speed = 0.8f;
+		//subtract cost from score
+		player.set_score(player.score() - cost);
+	}
+}
+
+void toygun::upgradeLeft_lvl2(player& player)
+{
+	int cost = 1000;
+	if (player.score() >= cost)
+	{
+		m_attack_speed = 0.25f;
+		//subtract cost from score
+		player.set_score(player.score() - cost);
 	}
 }
 

@@ -37,10 +37,10 @@ void tower::render_range(engine::ref<engine::shader> shader)
 	engine::renderer::submit(shader, m_range_highlight);
 }
 
-void tower::upgradeLeft_lvl1() {}
-void tower::upgradeLeft_lvl2() {}
-void tower::upgradeRight_lvl1() {}
-void tower::upgradeRight_lvl2() {}
+void tower::upgradeLeft_lvl1(player& player) {}
+void tower::upgradeLeft_lvl2(player& player) {}
+void tower::upgradeRight_lvl1(player& player) {}
+void tower::upgradeRight_lvl2(player& player) {}
 
 engine::ref<tower> tower::create(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies)
 {

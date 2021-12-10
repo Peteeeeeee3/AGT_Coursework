@@ -11,6 +11,10 @@ public:
 	void init() override;
 	void update(std::vector<engine::ref<enemy>> enemies, float dt) override;
 	void attack() override;
+	virtual void upgradeRight_lvl1(player& player) override;
+	virtual void upgradeRight_lvl2(player& player) override;
+	virtual void upgradeLeft_lvl1(player& player) override;
+	virtual void upgradeLeft_lvl2(player& player) override;
 	shockwave lightning() { return m_lightning; }
 
 	static engine::ref<wizard_hat> create(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies);

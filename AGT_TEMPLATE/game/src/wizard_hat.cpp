@@ -46,6 +46,52 @@ void wizard_hat::attack()
 	}
 }
 
+//range
+void wizard_hat::upgradeRight_lvl1(player& player)
+{
+	int cost = 150;
+	if (player.score() >= cost)
+	{
+		m_range = 4.f;
+		//subtract cost from score
+		player.set_score(player.score() - cost);
+	}
+}
+
+void wizard_hat::upgradeRight_lvl2(player& player)
+{
+	int cost = 350;
+	if (player.score() >= cost)
+	{
+		m_range = 7.f;
+		//subtract cost from score
+		player.set_score(player.score() - cost);
+	}
+}
+
+//fire rate
+void wizard_hat::upgradeLeft_lvl1(player& player)
+{
+	int cost = 350;
+	if (player.score() >= cost)
+	{
+		m_attack_speed = 0.8f;
+		//subtract cost from score
+		player.set_score(player.score() - cost);
+	}
+}
+
+void wizard_hat::upgradeLeft_lvl2(player& player)
+{
+	int cost = 1200;
+	if (player.score() >= cost)
+	{
+		m_attack_speed = 0.25f;
+		//subtract cost from score
+		player.set_score(player.score() - cost);
+	}
+}
+
 engine::ref<wizard_hat> wizard_hat::create(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies)
 {
 	return std::make_shared<wizard_hat>(props, enemies);

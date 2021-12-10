@@ -2,17 +2,54 @@
 #include "player.h"
 
 enemy::enemy(const engine::game_object_properties& props, float health, float strength, float speed, float spawn_time, e_type type) :
-	engine::game_object(props), m_health(health), m_strength(strength), m_speed(speed), m_spawn_time(spawn_time), m_type(type)
+	engine::game_object(props), m_health(health), m_health_cap(health), m_strength(strength), m_speed(speed), m_spawn_time(spawn_time), m_type(type)
 {
 	m_bounding_box = engine::bounding_box::bounding_box();
 	m_bounding_box.set_box(props.bounding_shape.x * props.scale.x, props.bounding_shape.y * props.scale.y, props.bounding_shape.z * props.bounding_shape.z, position());
 }
 
-void enemy::update(player& player, std::vector<glm::vec3> checkpoints, float dt)
+void enemy::heal(float inflict)
+{
+	//only heal if not at max health
+	if (m_health < m_health_cap)
+	{
+		//if lost health is less than the healing value, heak to max health
+		if (m_health_cap - m_health < inflict)
+			m_health = m_health_cap;
+		else
+			//heal inflict value
+			m_health += inflict;
+	}
+}
+
+void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std::vector<glm::vec3> checkpoints, float dt)
 {
 	m_life_time += dt;
 
 	m_bounding_box.on_update(position());
+
+	if (m_type == IRONMAN)
+	{
+		/*for (auto ball : m_heal_balls)
+			ball.on_update(enemies, dt);
+
+		if (toRender())
+		{
+			m_healing_timer += dt;
+
+			if (m_healing_timer >= m_healing_speed)
+			{
+				m_heal_balls.push_back(heal_ball::heal_ball(enemies));
+				for (auto ball : m_heal_balls)
+				{
+					if (!ball.is_active())
+					{
+						ball.launch(glm::vec3(position().x, position().y + 2.f, position().z), glm::vec3(forward().x, ))
+					}
+				}
+			}
+		}*/
+	}
 
 	if (m_health <= 0)
 		m_isDead = true;
@@ -88,9 +125,12 @@ void enemy::update(player& player, std::vector<glm::vec3> checkpoints, float dt)
 					m_location_state = FINISH;
 				break;
 			case FINISH:
-				player.damage(m_strength);
+				if (!m_dealt_damage)
+				{
+					player.damage(m_strength);
+					m_dealt_damage = true;
+				}
 				m_isDead = true;
-				this->~enemy();
 				break;
 			}
 		}

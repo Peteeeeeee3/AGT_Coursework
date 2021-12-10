@@ -3,6 +3,7 @@
 #include "player.h"
 #include "engine/utils/bounding_box.h"
 #include "engine/utils/timer.h"
+#include "heal_ball.h"
 
 class enemy : public engine::game_object
 {
@@ -13,7 +14,7 @@ public:
 
 	enemy(const engine::game_object_properties& props, float health, float strength, float speed, float spawn_time, e_type type);
 	~enemy() {}
-	void update(player& player, std::vector<glm::vec3> checkpoints, float dt);
+	void update(player& player, std::vector<engine::ref<enemy>> enemies, std::vector<glm::vec3> checkpoints, float dt);
 	e_type type() { return m_type; }
 	bool isDead() { return m_isDead; }
 	bool toRender() { return m_life_time >= m_spawn_time; }
@@ -21,12 +22,15 @@ public:
 	void stun(float duration) { m_stun_duration = duration; m_isStunned = true; }
 	bool isStunnded() { return m_isStunned; }
 	void damage(float inflict) { m_health -= inflict; }
-	void heal(float inflict) { m_health += inflict; }
+	void heal(float inflict);
+	float strength() { return m_strength; }
+	int state() { return m_location_state; }
 
 
 	static engine::ref<enemy> create(const engine::game_object_properties& props, float health, float strength, float speed, float spawn_time, e_type type);
 
 private:
+	float m_health_cap;
 	float m_health;
 	float m_strength;
 	float m_speed;
@@ -37,7 +41,12 @@ private:
 	engine::bounding_box m_bounding_box;
 	float m_stun_duration;
 	bool m_isStunned = false;
+	bool m_dealt_damage = false;
 	float m_stun_timer = 0.f;
+	//std::vector<heal_ball> m_heal_balls;
+	float m_healing_speed = 5.f;
+	float m_healing_timer = 0.f;
+
 
 	enum e_section {
 		START, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, FINISH
