@@ -18,6 +18,7 @@ public:
 	virtual void upgradeLeft_lvl2(player& player) override;
 	engine::ref<enemy> find_target();
 	void render_bullets(engine::ref<engine::shader> shader);
+	bool play_shot_sound() { return m_play_shot_sound; }
 
 	static engine::ref<toygun> create(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies);
 
@@ -30,4 +31,8 @@ private:
 	std::vector<bullet>				m_bullets;
 	engine::game_object_properties	m_bullet_props;
 	glm::vec3						m_forward_vec;
+
+	bool							m_play_shot_sound = false;
+
+	int target_index();
 };

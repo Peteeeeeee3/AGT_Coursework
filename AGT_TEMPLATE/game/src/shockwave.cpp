@@ -21,19 +21,18 @@ void shockwave::on_update(const engine::timestep& timestep)
 	m_life -= 1.f * (float)timestep;
 	if (m_life < 0) {
 		s_active = false;
+		m_is_complete = true;
 		return;
 	}
 
 	float f = pow(m_life, 0.25f); // Nonlinear mapping -- makes it expand faster at first
 	m_radius += 7.5f * f * (float)timestep;
-
-
 }
 
-void shockwave::initialise()
+void shockwave::initialise(std::string path)
 {
 	// Load the texture
-	m_texture = engine::texture_2d::create("assets/textures/lighting.png", false);
+	m_texture = engine::texture_2d::create(path, false);
 
 	glm::vec3 x_axis = glm::vec3(1.f, 0.f, 0.f);
 	glm::vec3 z_axis = glm::vec3(0.f, 0.f, 1.f);
@@ -71,11 +70,8 @@ void shockwave::activate(float radius, glm::vec3 position)
 
 void shockwave::on_render(engine::ref<engine::shader> shader)
 {
-
 	if (s_active == false)
 		return;
-
-
 
 	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("lighting_on", false);
 	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);

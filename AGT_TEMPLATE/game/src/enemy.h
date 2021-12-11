@@ -3,7 +3,6 @@
 #include "player.h"
 #include "engine/utils/bounding_box.h"
 #include "engine/utils/timer.h"
-#include "heal_ball.h"
 
 class enemy : public engine::game_object
 {
@@ -25,7 +24,7 @@ public:
 	void heal(float inflict);
 	float strength() { return m_strength; }
 	int state() { return m_location_state; }
-
+	float distance_covered() { return m_distance_covered; }
 
 	static engine::ref<enemy> create(const engine::game_object_properties& props, float health, float strength, float speed, float spawn_time, e_type type);
 
@@ -43,9 +42,9 @@ private:
 	bool m_isStunned = false;
 	bool m_dealt_damage = false;
 	float m_stun_timer = 0.f;
-	//std::vector<heal_ball> m_heal_balls;
 	float m_healing_speed = 5.f;
 	float m_healing_timer = 0.f;
+	float m_distance_covered = 0.f;
 
 
 	enum e_section {

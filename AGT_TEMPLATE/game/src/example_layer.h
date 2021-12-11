@@ -27,8 +27,10 @@ public:
     void on_event(engine::event& event) override;
 
 private:
-	//void check_bounce();
-	//engine::ref<billboard>							m_billboard{};
+
+	/////////////////
+	//misc
+	/////////////////
 
 	engine::ref<engine::skybox>			m_game_skybox{};
 	engine::ref<engine::skybox>			m_menu_skybox{};
@@ -39,28 +41,33 @@ private:
 	engine::ref<engine::pentahedron>	m_candle_flame{};
 	engine::ref<toygun>					m_game_gun{};
 
-	//menu componenets
-	engine::ref<toygun>					m_menu_toygun_r{};
-	engine::ref<toygun>					m_menu_toygun_l{};
-	engine::ref<engine::game_object>	m_menu_text{};
-	engine::ref<engine::game_object>	m_menu_controls{};
-	bool								inMenu = true;
-	bool								showingCtrls = false;
-	glm::vec3							m_menu_active_pos = glm::vec3(0.f, 5.5f, 10.f);
-	glm::vec3							m_menu_inactive_pos = glm::vec3(0.f, 5.5f, -15.f);
-
 	player m_player;
 
 	engine::ref<engine::material>		m_material{};
 
-	engine::DirectionalLight            m_directionalLight;
-
 	std::vector<engine::ref<engine::game_object>>     m_game_objects{};
 
 	engine::ref<engine::bullet_manager> m_physics_manager{};
-	engine::ref<engine::audio_manager>  m_audio_manager{};
 	float								m_prev_sphere_y_vel = 0.f;
-	engine::ref<engine::text_manager>	m_text_manager{};
+
+	/////////////////
+	//audio
+	/////////////////
+
+	engine::ref<engine::audio_manager>  m_audio_manager{};
+	float								m_volume = 1.f;
+
+	/////////////////
+	//lighting
+	/////////////////
+
+	engine::DirectionalLight            m_directionalLight;
+	engine::PointLight					m_enemy_lead_light;
+	uint32_t							m_num_point_lights = 1;
+	engine::ref<engine::material>		m_lightsource_material{};
+	engine::ref<engine::game_object>	m_enemy_lead_light_source;
+
+	int lead_light_target_index();
 
 	/////////////////
 	//canmera handling
@@ -98,6 +105,7 @@ private:
 	};
 
 	engine::ref<engine::material>		m_path_material{};
+	float m_path_length = 65.f;
 
 	void init_path();
 	void draw_path(const engine::ref<engine::shader>& shader);
@@ -118,7 +126,10 @@ private:
 
 	void new_wave();
 	int m_enemy_count = 5;
-	int m_wave_number = 1;
+	int m_wave_number = 0 ;
+	float m_precision_timer = 0.f;
+	int m_display_wave_timer = 0;
+	int m_wave_start_time = 30;
 
 	////////////////
 	//handling towers
@@ -129,6 +140,8 @@ private:
 	////////////////
 	//handling HUD
 	////////////////
+	engine::ref<engine::text_manager>	m_text_manager{};
+
 	engine::ref<quad>					m_toygun_bkgrnd{};
 	engine::ref<quad>					m_toygun_btn{};
 	engine::ref<engine::texture_2d>		m_toygun_icon{};
@@ -148,4 +161,19 @@ private:
 
 	void hud_on_render(engine::ref<engine::shader> shader);
 	void hud_init();
+
+	////////////////
+	//handling menu
+	////////////////
+
+	//menu componenets
+	engine::ref<toygun>					m_menu_toygun_r{};
+	engine::ref<toygun>					m_menu_toygun_l{};
+	engine::ref<engine::game_object>	m_menu_text{};
+	engine::ref<engine::game_object>	m_menu_controls{};
+
+	bool								inMenu = true;
+	bool								showingCtrls = false;
+	glm::vec3							m_menu_active_pos = glm::vec3(0.f, 5.5f, 10.f);
+	glm::vec3							m_menu_inactive_pos = glm::vec3(0.f, 5.5f, -15.f);
 };

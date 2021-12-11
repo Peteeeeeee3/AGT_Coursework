@@ -14,7 +14,7 @@ wizard_hat::~wizard_hat() {}
 void wizard_hat::init()
 {
 	m_elapsed = 0.f;
-	m_lightning.initialise();
+	m_lightning.initialise("assets/textures/lighting.png");
 }
 
 void wizard_hat::update(std::vector<engine::ref<enemy>> enemies, float dt)

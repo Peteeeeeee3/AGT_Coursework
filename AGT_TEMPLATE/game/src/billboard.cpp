@@ -20,10 +20,13 @@ billboard::billboard(std::string sprite_filename, uint32_t frames_x, uint32_t fr
 billboard::~billboard()
 {}
 
-void billboard::on_update(const engine::timestep& time_step)
+void billboard::on_update(const engine::timestep& time_step, bool isMoving, glm::vec3 position)
 {
 	if (!s_active)
 		return;
+
+	if (isMoving)
+		m_position = position;
 
 	// Update the frame based on dt
 	float frameTime = 1.0f / 30.0f;  // Sprite running at 30 frames per second

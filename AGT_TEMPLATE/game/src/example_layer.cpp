@@ -33,20 +33,27 @@ example_layer::example_layer()
 	// Initialise audio and play background music
 	m_audio_manager = engine::audio_manager::instance();
 	m_audio_manager->init();
-	m_audio_manager->load_sound("assets/audio/bounce.wav", engine::sound_type::spatialised, "bounce"); // Royalty free sound from freesound.org
-	m_audio_manager->load_sound("assets/audio/DST-impuretechnology.mp3", engine::sound_type::track, "music");  // Royalty free music from http://www.nosoapradio.us/
-	m_audio_manager->play("music");
-	m_audio_manager->pause("music");
-
+	m_audio_manager->load_sound("assets/audio/Chill Jazz Hop - Dar Golan - 85bpm - 02-47.mp3", engine::sound_type::track, "theme"); // Royalty free music from https://www.dargolan-free.com/ambient-music
+	m_audio_manager->load_sound("assets/audio/Epic Battle - Dar Golan - 128bpm - 02-02.mp3", engine::sound_type::track, "boss"); // Royalty free music from https://www.dargolan-free.com/dramatic-music
+	m_audio_manager->load_sound("assets/audio/bbc_fire.mp3", engine::sound_type::spatialised, "fire"); // edited by me, original free educational and personal use, from https://sound-effects.bbcrewind.co.uk/
+	m_audio_manager->load_sound("assets/audio/bbc_outdoor_short.mp3", engine::sound_type::event, "bell"); // edited by me, original free for education and personal use, from https://sound-effects.bbcrewind.co.uk/
+	m_audio_manager->load_sound("assets/audio/bbc_gunshot.mp3", engine::sound_type::spatialised, "shot"); // edited by me, original free for education and personal use, from https://sound-effects.bbcrewind.co.uk/
+	m_audio_manager->play("boss");
+	m_audio_manager->pause("boss");
 
 	// Initialise the shaders, materials and lights
 	auto mesh_shader = engine::renderer::shaders_library()->get("mesh");
 	auto text_shader = engine::renderer::shaders_library()->get("text_2D");
 
-	m_directionalLight.Color = glm::vec3(1.0f, 1.0f, 1.0f);
+	m_directionalLight.Color = glm::vec3(.6f, .6f, .6f);
 	m_directionalLight.AmbientIntensity = 0.25f;
 	m_directionalLight.DiffuseIntensity = 0.6f;
-	m_directionalLight.Direction = glm::normalize(glm::vec3(1.0f, -1.0f, 0.0f));
+	m_directionalLight.Direction = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
+
+	m_enemy_lead_light.Color = glm::vec3(1.f, 1.f, 1.f);
+	m_enemy_lead_light.AmbientIntensity = 0.25f;
+	m_enemy_lead_light.DiffuseIntensity = 0.6f;
+	m_enemy_lead_light.Position = glm::vec3(-25.f, 0.1f, 0.f);
 
 	// set color texture unit
 	std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->bind();
@@ -63,6 +70,8 @@ example_layer::example_layer()
 		(float)engine::application::window().height()));
 	m_material = engine::material::create(1.0f, glm::vec3(1.0f, 0.1f, 0.07f),
 		glm::vec3(1.0f, 0.1f, 0.07f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f);
+	m_lightsource_material = engine::material::create(1.0f, m_enemy_lead_light.Color,
+		m_enemy_lead_light.Color, m_enemy_lead_light.Color, 1.0f);
 
 	// Skybox texture from http://www.vwall.it/wp-content/plugins/canvasio3dpro/inc/resource/cubeMaps/
 	m_menu_skybox = engine::skybox::create(50.f,
@@ -101,6 +110,12 @@ example_layer::example_layer()
 	terrain_props.restitution = 0.92f;
 	terrain_props.position = glm::vec3(0.f, 0.0f, 0.f);
 	m_terrain = engine::game_object::create(terrain_props);
+
+	engine::ref<engine::sphere> light_source_mesh = engine::sphere::create(10, 20, 0.01f);
+	engine::game_object_properties source_props;
+	source_props.meshes = { light_source_mesh->mesh() };
+	source_props.position = m_enemy_lead_light.Position;
+	m_enemy_lead_light_source = engine::game_object::create(source_props);
 
 	// initialize path
 	init_path();
@@ -216,7 +231,7 @@ example_layer::example_layer()
 
 	m_3d_camera.set_view_matrix(glm::vec3(0.f, 10.f, 0.f), glm::vec3(-5.f, 0.f, -5.f));
 
-	//m_billboard = billboard::create("assets/textures/fire1_64.tga", 10, 6, 60);
+	m_audio_manager->play("theme");
 }
 
 example_layer::~example_layer() {}
@@ -226,6 +241,7 @@ void example_layer::on_update(const engine::timestep& time_step)
 	// update differenly when in menu
 	if (inMenu)
 	{
+		m_directionalLight.Color = { 1.f, 1.f, 1.f };
 		// lock camera is specific position and orientation 
 		m_3d_camera.set_view_matrix(glm::vec3(0.f, 5.f, 0.f), glm::vec3(0.f, 5.f, 1.f));
 
@@ -247,24 +263,70 @@ void example_layer::on_update(const engine::timestep& time_step)
 	}
 	else
 	{
-		//m_billboard->on_update(time_step);
+		m_directionalLight.Color = { 0.6f, 0.6f, 0.6f };
+
+		if (m_active_enemies.size() == 0)
+		{
+			m_precision_timer += time_step;
+			if (m_precision_timer >= 1.f)
+			{
+				m_display_wave_timer++;
+				m_precision_timer = 0.f;
+			}
+
+			if (m_display_wave_timer >= m_wave_start_time)
+				new_wave();
+		}
+
 		for (auto enemy : m_active_enemies)
 			enemy->update(m_player, m_active_enemies, m_checkpoints, time_step);
+
+		if (m_active_enemies.size() > 0)
+		{
+			int target_index = lead_light_target_index();
+			m_enemy_lead_light.Position = m_active_enemies.at(target_index)->position();
+			m_enemy_lead_light.Position.y = 0.1f;
+			m_enemy_lead_light_source->set_position(glm::vec3(m_active_enemies.at(target_index)->position().x, 0.1f, m_active_enemies.at(target_index)->position().z));
+		}
+		else
+		{
+			m_enemy_lead_light.Position = { -25.f, 0.1f, 0.f };
+			m_enemy_lead_light_source->set_position(glm::vec3(-25.f, 0.1f, 0.f));
+		}
 
 		for (auto tower : m_towers)
 		{
 			tower->update(m_active_enemies, time_step);
 			std::string name = typeid(*tower.get()).name();
+			if (name == "class toygun")
+			{
+				auto gun_cast = std::dynamic_pointer_cast<toygun>(tower);
+				if (gun_cast->play_shot_sound())
+				{
+					m_audio_manager->play_spatialised_sound("shot", m_3d_camera.position(), gun_cast->position());
+					m_audio_manager->volume("shot", m_volume);
+				}
+			}
 			if (name == "class candle")
 			{
-				if (std::dynamic_pointer_cast<candle>(tower)->active_cam())
+				auto candle_cast = std::dynamic_pointer_cast<candle>(tower);
+				glm::vec3 flame_pos = { candle_cast->position().x, candle_cast->position().y + 2.45f, candle_cast->position().z };
+				if (glm::length(flame_pos - m_3d_camera.position()) <= 2.f)
 				{
-					m_active_candle_cam = std::dynamic_pointer_cast<candle>(tower);
-					std::dynamic_pointer_cast<candle>(tower)->update_shot(m_3d_camera, time_step);
-					if (!std::dynamic_pointer_cast<candle>(tower)->shot().physics_bound())
-						m_game_objects.push_back(std::dynamic_pointer_cast<candle>(tower)->shot().object());
-					if (std::dynamic_pointer_cast<candle>(tower)->shot().to_remove())
-						std::dynamic_pointer_cast<candle>(tower)->reset_shot();
+					m_audio_manager->play_spatialised_sound("fire", m_3d_camera.position(), flame_pos);
+					m_audio_manager->volume("fire", m_volume);
+				}
+				if (candle_cast->active_cam())
+				{
+					m_active_candle_cam = candle_cast;
+					candle_cast->update_shot(m_3d_camera, time_step);
+					if (candle_cast->active_shot())
+					{
+						if (candle_cast->shot().to_remove())
+						{
+							candle_cast->reset_shot();
+						}
+					}
 					break;
 				}
 				else
@@ -300,6 +362,7 @@ void example_layer::on_render()
 	// Set up  shader. (renders textures and materials)
 	const auto mesh_shader = engine::renderer::shaders_library()->get("mesh");
 	engine::renderer::begin_scene(m_3d_camera, mesh_shader);
+	m_directionalLight.submit(mesh_shader);
 
 	// Set up some of the scene's parameters in the shader
 	std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("gEyeWorldPos", m_3d_camera.position());
@@ -346,7 +409,8 @@ void example_layer::on_render()
 	///////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////game rendering
 	///////////////////////////////////////////////////////////////////////
-	else {
+	else
+	{
 		// Position the skybox centred on the player and render it
 		glm::mat4 skybox_transform(1.0f);
 		skybox_transform = glm::translate(skybox_transform, m_3d_camera.position());
@@ -386,7 +450,11 @@ void example_layer::on_render()
 				std::dynamic_pointer_cast<wizard_hat>(tower)->lightning().on_render(mesh_shader);
 			}
 			if (name == "class candle")
-				std::dynamic_pointer_cast<candle>(tower)->shot().on_render(mesh_shader);
+			{
+				std::dynamic_pointer_cast<candle>(tower)->fire_ring().on_render(mesh_shader);
+				if (std::dynamic_pointer_cast<candle>(tower)->active_shot())
+					std::dynamic_pointer_cast<candle>(tower)->shot().on_render(mesh_shader);
+			}
 		}
 
 		//render enemies
@@ -396,7 +464,6 @@ void example_layer::on_render()
 			{
 				if (m_active_enemies.at(i)->isDead())
 				{
-					std::cout << m_active_enemies.at(i)->state() << "\n";
 					if (m_active_enemies.at(i)->state() != 8)
 						m_player.set_score(m_player.score() + m_active_enemies.at(i)->strength());
 					else
@@ -423,9 +490,18 @@ void example_layer::on_render()
 			std::string name = typeid(*tower.get()).name();
 
 			if (name == "class candle")
+			{
 				std::dynamic_pointer_cast<candle>(tower)->flame()->on_render(m_3d_camera, mesh_shader);
+				if (std::dynamic_pointer_cast<candle>(tower)->active_shot())
+					std::dynamic_pointer_cast<candle>(tower)->shot().flame()->on_render(m_3d_camera, mesh_shader);
+				std::dynamic_pointer_cast<candle>(tower)->light_render(mesh_shader);
+			}
 		}
-		engine::renderer::end_scene();
+
+		std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("gNumPointLights", (int)m_num_point_lights);
+		m_enemy_lead_light.submit(mesh_shader, 0);
+		m_lightsource_material->submit(mesh_shader);
+		engine::renderer::submit(mesh_shader, m_enemy_lead_light_source->meshes().at(0), glm::translate(glm::mat4(1.f), m_enemy_lead_light.Position));
 
 		//render hud
 		hud_on_render(mesh_shader);
@@ -441,6 +517,28 @@ void example_layer::on_event(engine::event& event)
 		if (e.key_code() == engine::key_codes::KEY_TAB)
 		{	
 			engine::render_command::toggle_wireframe();
+		}
+
+		if (e.key_code() == engine::key_codes::KEY_UP)
+		{
+			if (m_volume <= 2.9f)
+				m_volume += 0.1f;
+			m_audio_manager->volume("theme", m_volume);
+			m_audio_manager->volume("boss", m_volume);
+			m_audio_manager->volume("fire", m_volume);
+			m_audio_manager->volume("bell", m_volume);
+			m_audio_manager->volume("shot", m_volume);
+		}
+
+		if (e.key_code() == engine::key_codes::KEY_DOWN)
+		{
+			if (m_volume >= 0.1f)
+				m_volume -= 0.1f;
+			m_audio_manager->volume("theme", m_volume);
+			m_audio_manager->volume("boss", m_volume);
+			m_audio_manager->volume("fire", m_volume);
+			m_audio_manager->volume("bell", m_volume);
+			m_audio_manager->volume("shot", m_volume);
 		}
 
 		// detect player opening menu
@@ -546,37 +644,72 @@ void example_layer::draw_path(const engine::ref<engine::shader>& shader)
 
 void example_layer::new_wave()
 {
-	if (m_wave_number % 2 == 0)
+	if (m_active_enemies.size() == 0)
 	{
-		for (int i = 0; i < m_wave_number / 2; ++i)
+		m_audio_manager->pause("boss");
+		m_audio_manager->pause("theme");
+		++m_wave_number;
+		if (m_wave_number % 2 == 0)
 		{
-			m_active_enemies.push_back(enemy::create(m_claptrap_props, 100.f, 5.f, 1.f, 1.f * i, enemy::e_type::CLAPTRAP));
+			for (int i = 0; i < m_wave_number / 2; ++i)
+			{
+				m_active_enemies.push_back(enemy::create(m_claptrap_props, 100.f, 5.f, 1.f, 1.f * i, enemy::e_type::CLAPTRAP));
+			}
+		}
+
+		if (m_wave_number % 5 == 0)
+		{
+			for (int i = 0; i < m_wave_number / 5; ++i)
+			{
+				m_active_enemies.push_back(enemy::create(m_mech_props, 500.f, 20.f, 0.65f, 8.f * i, enemy::e_type::MECH));
+			}
+		}
+
+		if (m_wave_number % 10 == 0)
+		{
+			for (int i = 0; i < m_wave_number / 10; ++i)
+			{
+				m_active_enemies.push_back(enemy::create(m_ironman_props, 1000.f, 50.f, 0.4f, 5.f * i, enemy::e_type::IRONMAN));
+			}
+			m_audio_manager->unpause("boss");
+			m_audio_manager->volume("boss", m_volume);
+		}
+		else
+		{
+			m_audio_manager->unpause("theme");
+			m_audio_manager->volume("theme", m_volume);
+		}
+
+		for (int i = 0; i < m_enemy_count; ++i)
+		{
+			m_active_enemies.push_back(enemy::create(m_spider_props, 50.f, 5.f, 3.f, 1.f * i, enemy::e_type::SPIDER));
+		}
+
+		++m_enemy_count;
+		m_display_wave_timer = 0;
+		m_precision_timer = 0.f;
+		m_audio_manager->play("bell");
+		m_audio_manager->volume("bell", m_volume);
+	}
+}
+
+int example_layer::lead_light_target_index()
+{
+	int return_index = NULL;
+	engine::ref<enemy> current_target;
+	if (m_active_enemies.size() != 0)
+	{
+		current_target = m_active_enemies.at(0);
+		for (int i = 0; i < m_active_enemies.size(); ++i)
+		{
+			if (m_active_enemies.at(i)->distance_covered() > current_target->distance_covered())
+			{
+				current_target = m_active_enemies.at(i);
+				return_index = i;
+			}
 		}
 	}
-
-	if (m_wave_number % 5 == 0)
-	{
-		for (int i = 0; i < m_wave_number / 5; ++i)
-		{
-			m_active_enemies.push_back(enemy::create(m_mech_props, 500.f, 20.f, 0.65f, 8.f * i, enemy::e_type::MECH));
-		}
-	}
-
-	if (m_wave_number % 10 == 0)
-	{
-		for (int i = 0; i < m_wave_number / 10; ++i)
-		{
-			m_active_enemies.push_back(enemy::create(m_ironman_props, 1000.f, 50.f, 0.4f, 5.f * i, enemy::e_type::IRONMAN));
-		}
-	}
-
-	for (int i = 0; i < m_enemy_count; ++i)
-	{	
-		m_active_enemies.push_back(enemy::create(m_spider_props, 50.f, 5.f, 3.f, 1.f * i, enemy::e_type::SPIDER));
-	}
-
-	++m_wave_number;
-	++m_enemy_count;
+	return return_index;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -591,6 +724,19 @@ void example_layer::hud_on_render(engine::ref<engine::shader> shader)
 	m_text_manager->render_text(text_shader, std::to_string((int) m_player.health()), 135.f, (float) engine::application::window().height() - 65.f, .55f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
 	//wave number
 	m_text_manager->render_text(text_shader, "Wave: " + std::to_string((int)m_wave_number), (float) engine::application::window().width() - 135.f, (float) engine::application::window().height() - 65.f, .55f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+	//tower prices
+	//gun
+	m_text_manager->render_text(text_shader, "650", (float)engine::application::window().width() - 95.f, (float)engine::application::window().height() / 2 + 33.f, .4f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+	//wiz hat
+	m_text_manager->render_text(text_shader, "600", (float)engine::application::window().width() - 95.f, (float)engine::application::window().height() / 2 - 46.f, .4f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+	//candle
+	m_text_manager->render_text(text_shader, "800", (float)engine::application::window().width() - 95.f, (float)engine::application::window().height() / 2 - 128.f, .4f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+
+	if (m_active_enemies.size() == 0)
+	{
+		m_text_manager->render_text(text_shader, "Next wave in: " + std::to_string(m_wave_start_time - m_display_wave_timer) + "s", (float)engine::application::window().width() / 2.f - 135.f, (float)engine::application::window().height() - 130.f, .75f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+		m_text_manager->render_text(text_shader, "Press \"N\" to start wave now", (float)engine::application::window().width() / 2.f - 210.f, (float)engine::application::window().height() - 180.f, .75f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+	}
 
 	engine::renderer::begin_scene(m_2d_camera, shader);
 	////////////////
@@ -660,8 +806,6 @@ void example_layer::hud_on_render(engine::ref<engine::shader> shader)
 	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
 	m_health_txt2d->bind();
 	engine::renderer::submit(shader, m_health_quad->mesh(), health_transform);
-
-	engine::renderer::end_scene();
 }
 
 void example_layer::hud_init()

@@ -61,8 +61,6 @@ engine::cone::cone(uint32_t triangles, float height, float radius, glm::vec3 cen
 	}
 	// create cone mesh
 	m_mesh = engine::mesh::create(cone_vertices, cone_indices);
-	for (auto entry : cone_vertices)
-		std::cout << "Cone:\n" << entry.position << "\n";
 }
 
 engine::cone::~cone() {}

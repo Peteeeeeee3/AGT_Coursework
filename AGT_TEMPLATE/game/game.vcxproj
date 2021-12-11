@@ -137,7 +137,6 @@
     <ClInclude Include="src\enemy.h" />
     <ClInclude Include="src\example_layer.h" />
     <ClInclude Include="src\fire_ball.h" />
-    <ClInclude Include="src\heal_ball.h" />
     <ClInclude Include="src\lightning_bolt.h" />
     <ClInclude Include="src\player.h" />
     <ClInclude Include="src\quad.h" />
@@ -154,7 +153,6 @@
     <ClCompile Include="src\example_layer.cpp" />
     <ClCompile Include="src\fire_ball.cpp" />
     <ClCompile Include="src\game.cpp" />
-    <ClCompile Include="src\heal_ball.cpp" />
     <ClCompile Include="src\lightning_bolt.cpp" />
     <ClCompile Include="src\player.cpp" />
     <ClCompile Include="src\quad.cpp" />

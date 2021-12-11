@@ -30,25 +30,7 @@ void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std:
 
 	if (m_type == IRONMAN)
 	{
-		/*for (auto ball : m_heal_balls)
-			ball.on_update(enemies, dt);
-
-		if (toRender())
-		{
-			m_healing_timer += dt;
-
-			if (m_healing_timer >= m_healing_speed)
-			{
-				m_heal_balls.push_back(heal_ball::heal_ball(enemies));
-				for (auto ball : m_heal_balls)
-				{
-					if (!ball.is_active())
-					{
-						ball.launch(glm::vec3(position().x, position().y + 2.f, position().z), glm::vec3(forward().x, ))
-					}
-				}
-			}
-		}*/
+		
 	}
 
 	if (m_health <= 0)
@@ -64,6 +46,7 @@ void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std:
 				set_rotation_amount(glm::pi<float>() / 2);
 				if (m_type == SPIDER)
 					set_rotation_amount(-rotation_amount());
+				m_distance_covered += dt * m_speed;
 				set_position(position() + glm::normalize(checkpoints[0] - position()) * dt * m_speed);
 				if (position().x >= checkpoints[0].x && position().z == checkpoints[0].z)
 					m_location_state = ONE;
@@ -72,6 +55,7 @@ void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std:
 				set_rotation_amount(glm::pi<float>() / 2);
 				if (m_type == SPIDER)
 					set_rotation_amount(-rotation_amount());
+				m_distance_covered += dt * m_speed;
 				set_position(position() + glm::normalize(checkpoints[1] - position()) * dt * m_speed);
 				if (position().x >= checkpoints[1].x && position().z == checkpoints[1].z)
 					m_location_state = TWO;
@@ -80,6 +64,7 @@ void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std:
 				set_rotation_amount(glm::pi<float>());
 				if (m_type == SPIDER)
 					set_rotation_amount(0.f);
+				m_distance_covered += dt * m_speed;
 				set_position(position() + glm::normalize(checkpoints[2] - position()) * dt * m_speed);
 				if (position().z <= checkpoints[2].z)
 					m_location_state = THREE;
@@ -88,6 +73,7 @@ void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std:
 				set_rotation_amount(glm::pi<float>() / 2);
 				if (m_type == SPIDER)
 					set_rotation_amount(-rotation_amount());
+				m_distance_covered += dt * m_speed;
 				set_position(position() + glm::normalize(checkpoints[3] - position()) * dt * m_speed);
 				if (position().x >= checkpoints[3].x)
 					m_location_state = FOUR;
@@ -96,6 +82,7 @@ void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std:
 				set_rotation_amount(0.f);
 				if (m_type == SPIDER)
 					set_rotation_amount(glm::pi<float>());
+				m_distance_covered += dt * m_speed;
 				set_position(position() + glm::normalize(checkpoints[4] - position()) * dt * m_speed);
 				if (position().z >= checkpoints[4].z)
 					m_location_state = FIVE;
@@ -104,6 +91,7 @@ void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std:
 				set_rotation_amount(glm::pi<float>() / 2);
 				if (m_type == SPIDER)
 					set_rotation_amount(-rotation_amount());
+				m_distance_covered += dt * m_speed;
 				set_position(position() + glm::normalize(checkpoints[5] - position()) * dt * m_speed);
 				if (position().x >= checkpoints[5].x)
 					m_location_state = SIX;
@@ -112,6 +100,7 @@ void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std:
 				set_rotation_amount(glm::pi<float>());
 				if (m_type == SPIDER)
 					set_rotation_amount(0.f);
+				m_distance_covered += dt * m_speed;
 				set_position(position() + glm::normalize(checkpoints[6] - position()) * dt * m_speed);
 				if (position().z <= checkpoints[6].z)
 					m_location_state = SEVEN;
@@ -120,6 +109,7 @@ void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std:
 				set_rotation_amount(glm::pi<float>() / 2);
 				if (m_type == SPIDER)
 					set_rotation_amount(-rotation_amount());
+				m_distance_covered += dt * m_speed;
 				set_position(position() + glm::normalize(checkpoints[7] - position()) * dt * m_speed);
 				if (position().x >= checkpoints[7].x)
 					m_location_state = FINISH;

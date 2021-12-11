@@ -27,7 +27,7 @@ void toygun::init()
 void toygun::update(std::vector<engine::ref<enemy>> enemies, float dt)
 {
 	m_elapsed += dt;
-
+	m_play_shot_sound = false;
 	m_active_enemies = enemies;
 
 	m_bounding_box.on_update(glm::vec3(position().x, position().y + .5f, position().z));
@@ -96,16 +96,15 @@ void toygun::rotate(bool rotate_left, float dt)
 void toygun::attack()
 {
 	m_bullets.push_back(bullet::bullet(m_bullet_props, m_range, m_forward_vec, glm::vec3(position().x, 1.f, position().z), m_damage));
+	m_play_shot_sound = true;
 }
 
 engine::ref<enemy> toygun::find_target()
 {
-	for (auto enemy : m_active_enemies)
-	{
-		if (glm::length(enemy->position() - position()) <= m_range)
-			return enemy;
-	}
-	return nullptr;
+	if (target_index() == -1)
+		return nullptr;
+	else
+		return m_active_enemies.at(target_index());
 }
 
 void toygun::render_bullets(engine::ref<engine::shader> shader)
@@ -160,6 +159,36 @@ void toygun::upgradeLeft_lvl2(player& player)
 		//subtract cost from score
 		player.set_score(player.score() - cost);
 	}
+}
+
+int toygun::target_index()
+{
+	int return_index = -1;
+	engine::ref<enemy> current_target = nullptr;
+	for (auto enemy : m_active_enemies)
+		if (glm::length(enemy->position() - position()) <= m_range)
+		{
+			current_target = enemy;
+			break;
+		}
+
+	if (current_target == nullptr)
+		return return_index;
+
+	if (m_active_enemies.size() != 0)
+	{
+		current_target = m_active_enemies.at(0);
+		return_index = 0;
+		for (int i = 0; i < m_active_enemies.size(); ++i)
+		{
+			if (m_active_enemies.at(i)->distance_covered() > current_target->distance_covered() && glm::length(m_active_enemies.at(i)->position() - position()) <= m_range)
+			{
+				current_target = m_active_enemies.at(i);
+				return_index = i;
+			}
+		}
+	}
+	return return_index;
 }
 
 engine::ref<toygun> toygun::create(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies)

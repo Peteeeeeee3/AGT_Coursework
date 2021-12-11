@@ -47,8 +47,6 @@ engine::cylinder::cylinder(uint32_t sections, float radius, float height, glm::v
 		//assign coordinates
 		c_right = glm::vec3(x, c_y, z);
 		b_right = glm::vec3(x, b_y, z);
-		std::cout << "ceiling right: " << c_right << " peak: " << m_peak << "\n";
-		//std::cout << "c: " << c_right << " b: " << b_right << "\n";
 		//ceiling normal
 		c_normal = glm::cross(m_peak - c_left, m_peak - c_right);
 		//ceiling vertices
@@ -62,7 +60,7 @@ engine::cylinder::cylinder(uint32_t sections, float radius, float height, glm::v
 		}
 
 		//wall normal
-		w_normal = glm::cross(b_left - c_left, b_left - b_right);
+		w_normal = -glm::cross(b_left - c_left, b_left - b_right);
 		//wall vertices - handle as two triangles
 		cyl_vertices.push_back({ b_left, w_normal, {0.f, 0.f} });
 		cyl_indices.push_back(index);
