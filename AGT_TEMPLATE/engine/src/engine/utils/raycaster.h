@@ -5,6 +5,9 @@
 //| |		_   | |		| | | | | | \ \  | |\ \  | | | |  ___| |
 //|_|	   |_|  |_|		|_| |_| |_|  \_\ |_| \_\ |_| |_| |_____|
 
+// This code is heavily based on: https://www.youtube.com/watch?v=DLKN0jExRIM&t=3s&ab_channel=ThinMatrix
+// Some changes have been made and some new features were added
+
 #pragma once
 #include <engine.h>
 #include "engine/core/timestep.h"

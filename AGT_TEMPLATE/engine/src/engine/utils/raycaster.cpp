@@ -33,12 +33,15 @@ void engine::raycaster::on_update(engine::perspective_camera& camera) {
 	m_current_ray = calculate_mouse_ray();
 }
 
+/// <summary>
+/// calculates the ray coming from the mouse going into the screen (in world coordinates)
+/// </summary>
 glm::vec3& engine::raycaster::calculate_mouse_ray() {
-	auto [mouse_x, mouse_y] = engine::input::mouse_position();
-	glm::vec3 normalizedCoords = normalised_device_coords(mouse_x, mouse_y, m_width, m_height);
+	auto [mouse_x, mouse_y] = engine::input::mouse_position();//screen coords
+	glm::vec3 normalizedCoords = normalised_device_coords(mouse_x, mouse_y, m_width, m_height);//normalized coords
 	glm::vec4 clipCoords = glm::vec4(normalizedCoords.x, normalizedCoords.y, -1.f, 1.f);
 	glm::vec4 eyeCoords = to_eye_coords(clipCoords);
-	glm::vec3 worldRay = to_world_coords(eyeCoords);
+	glm::vec3 worldRay = to_world_coords(eyeCoords); // world coords
 	return worldRay;
 }
 
@@ -80,8 +83,10 @@ glm::vec3 engine::raycaster::point_on_surface()
 	glm::vec3 end = m_camera_position + m_current_ray * m_ray_range;
 	glm::vec3 point = start;
 
+	//loop until point has a suffieciently small inacuracy
 	while (!(point.y <= 0.1f && point.y >= -0.1f))
 	{
+		//point is in the middle of start and finish
 		point = start + m_current_ray * (glm::length(end - start) / 2.f);
 
 		if (point.y < -0.1f)

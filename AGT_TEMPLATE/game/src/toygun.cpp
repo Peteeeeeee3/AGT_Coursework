@@ -24,6 +24,7 @@ toygun::~toygun() {}
 
 void toygun::init()
 {
+	//initialise bullets that will be shot
 	m_elapsed = 0.f;
 	engine::ref<engine::texture_2d> bullet_texture = engine::texture_2d::create("assets/textures/orange.png", true);
 	engine::ref<engine::sphere> bullet_shape = engine::sphere::create(10, 20, .1f);
@@ -43,25 +44,31 @@ void toygun::update(std::vector<engine::ref<enemy>> enemies, float dt)
 
 	m_bounding_box.on_update(glm::vec3(position().x, position().y + .5f, position().z));
 
+	//update bullets unless they are flagged for removal
 	for (int i = 0; i < m_bullets.size(); ++i)
 	{
 		if (m_bullets.at(i).remove())
+			//remove flagged bullet
 			m_bullets.erase(m_bullets.begin() + i);
 		else 
 			m_bullets.at(i).on_update(enemies, dt);
 	}
 
+	//be inactive unless its an active wave
 	if (m_active_enemies.size() > 0)
 	{
 		m_target = find_target();
 
+		//only act if target is available
 		if (m_target != nullptr)
 		{
+			//rotate to face target
 			glm::vec3 vec_to_enemy = m_target->position() - position();
 			m_forward_vec = vec_to_enemy;
 			float angle = atan2(vec_to_enemy.x, vec_to_enemy.z);
 			set_rotation_amount(angle);
 
+			//shoot if applicable
 			if (m_elapsed >= m_attack_speed)
 			{
 				m_elapsed = 0.f;
@@ -139,6 +146,7 @@ void toygun::upgradeRight_lvl1(player& player)
 	}
 }
 
+//range
 void toygun::upgradeRight_lvl2(player& player)
 {
 	if (player.score() >= m_ugr2_cost)
@@ -163,6 +171,7 @@ void toygun::upgradeLeft_lvl1(player& player)
 	}
 }
 
+//fire rate
 void toygun::upgradeLeft_lvl2(player& player)
 {
 	if (player.score() >= m_ugl2_cost)
@@ -176,8 +185,10 @@ void toygun::upgradeLeft_lvl2(player& player)
 
 int toygun::target_index()
 {
+	//return out of bounds if none found
 	int return_index = -1;
 	engine::ref<enemy> current_target = nullptr;
+	//find a random enemy in range
 	for (auto enemy : m_active_enemies)
 		if (glm::length(enemy->position() - position()) <= m_range)
 		{
@@ -185,6 +196,7 @@ int toygun::target_index()
 			break;
 		}
 
+	//break if non ein reange
 	if (current_target == nullptr)
 		return return_index;
 
@@ -194,6 +206,7 @@ int toygun::target_index()
 		return_index = 0;
 		for (int i = 0; i < m_active_enemies.size(); ++i)
 		{
+			//if enemy is in range and has travelled further than current target, update target
 			if (m_active_enemies.at(i)->distance_covered() > current_target->distance_covered() && glm::length(m_active_enemies.at(i)->position() - position()) <= m_range)
 			{
 				current_target = m_active_enemies.at(i);

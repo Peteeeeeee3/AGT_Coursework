@@ -36,6 +36,7 @@ void fire_ball::init()
 
 void fire_ball::shoot(const engine::perspective_camera& camera)
 {
+	//prepare for shot and apply force(s) correctly
 	m_object->set_velocity(glm::vec3(0.f));
 	m_object->set_acceleration(glm::vec3(0.f, -9.8f, 0.f));
 
@@ -49,6 +50,7 @@ void fire_ball::shoot(const engine::perspective_camera& camera)
 
 void fire_ball::on_update(std::vector<engine::ref<enemy>> enemies, float dt)
 {
+	//update velocity and position
 	m_object->set_velocity(m_object->velocity() + (m_object->acceleration() + m_instantaneous_acceleration) * dt);
 	m_object->set_position(m_object->position() + m_object->velocity() * dt);
 
@@ -60,6 +62,7 @@ void fire_ball::on_update(std::vector<engine::ref<enemy>> enemies, float dt)
 		m_contact_time = 0.f;
 	}
 
+	//loop flame effect
 	if (!m_flame->isActive())
 	{
 		m_flame->activate(glm::vec3(m_object->position().x, m_object->position().y + .3f, m_object->position().z), .3f, .3f);

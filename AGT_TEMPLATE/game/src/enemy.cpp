@@ -35,18 +35,16 @@ void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std:
 
 	m_bounding_box.on_update(position());
 
-	if (m_type == IRONMAN)
-	{
-		
-	}
-
 	if (m_health <= 0)
 		m_isDead = true;
 
+	//do not act if not visible
 	if (toRender())
 	{
+		//do not act if stunned
 		if (!m_isStunned)
 		{
+			//switch states, assign orientation and handle movement
 			switch (m_location_state)
 			{
 			case START:
@@ -133,11 +131,13 @@ void enemy::update(player& player, std::vector<engine::ref<enemy>> enemies, std:
 		}
 		else
 		{
+			//remove stun	
 			if (m_stun_timer >= m_stun_duration)
 			{
 				m_isStunned = false;
 				m_stun_timer = 0.f;
 			}
+			//increment stun timer
 			else
 				m_stun_timer += dt;
 		}

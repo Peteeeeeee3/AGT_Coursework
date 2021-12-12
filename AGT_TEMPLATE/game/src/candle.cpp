@@ -30,11 +30,13 @@ candle::~candle() {}
 
 void candle::init()
 {
+	//initialise effects
 	m_elapsed = 0.f;
 	m_flame = billboard::create("assets/textures/fire1_64.png", 10, 6, 60);
 	m_flame->activate(glm::vec3(position().x, position().y + 2.45f, position().z), .3f, .3f);
 	m_fire_ring.initialise("assets/textures/fire_ring.png");
 
+	//initialise light
 	m_pointLight.Color = glm::vec3(1.f, 0.757f, 0.459f);
 	m_pointLight.AmbientIntensity = 0.25f;
 	m_pointLight.DiffuseIntensity = 0.6f;
@@ -43,6 +45,7 @@ void candle::init()
 	m_lightsource_material = engine::material::create(1.0f, m_pointLight.Color,
 		m_pointLight.Color, m_pointLight.Color, 1.0f);
 
+	//set up mesh and game object
 	engine::ref<engine::sphere> source_mesh = engine::sphere::create(10, 20, 0.01f);
 	engine::game_object_properties source_props;
 	source_props.meshes = { source_mesh->mesh() };
@@ -52,22 +55,26 @@ void candle::init()
 
 void candle::update(std::vector<engine::ref<enemy>> enemies, float dt)
 {
+	//update required values
 	m_elapsed += dt;
 	m_active_enemies = enemies;
 	m_flame->on_update(dt, false, glm::vec3(0.f));
 	m_pointLight.Position = glm::vec3(position().x, position().y + 2.5f, position().z);
 	m_flash_source->set_position(m_pointLight.Position);
 
+	//check if need to attack
 	if (m_elapsed >= m_attack_speed) {
 		m_elapsed = 0.f;
 		attack();
 	}
 
+	//update fireballs if any are active
 	if (m_active_shot)
 		m_shot->on_update(enemies, dt);
 
 	m_fire_ring.on_update(dt);
 
+	//loop flame effect
 	if (!m_flame->isActive())
 	{
 		m_flame->activate(glm::vec3(position().x, position().y + 2.45f, position().z), .3f, .3f);
@@ -76,8 +83,10 @@ void candle::update(std::vector<engine::ref<enemy>> enemies, float dt)
 
 void candle::update_shot(engine::perspective_camera& camera, float dt)
 {
+	//only active candle turret has a fireball
 	if (m_active_cam)
 	{
+		//shoot
 		if (!m_active_shot && engine::input::mouse_button_pressed(0))
 		{
 			m_shot = std::make_shared<fire_ball>();
@@ -85,20 +94,27 @@ void candle::update_shot(engine::perspective_camera& camera, float dt)
 			m_active_shot = true;
 		}
 
+		//remove fireball and play effect
 		if (m_active_shot && m_shot->object()->position().y <= 0)
 		{
+			//play effect at point of position().y = 0
 			m_fire_ring.activate(m_shot->aoe_range(), glm::vec3(m_shot->object()->position().x, m_shot->object()->position().y + 0.19f, m_shot->object()->position().z));
 
+			//damage appropriate enemies
 			for (auto enemy : m_active_enemies)
 				if (glm::length(enemy->position() - m_shot->object()->position()) <= 4.f)
 					enemy->damage(m_shot->damage());
 
+			//remove shot
 			m_shot->flag_remove();
 			m_active_shot = false;
 		}
 	}
 }
 
+/// <summary>
+/// handles house movement tracking and camera rotation updating
+/// </summary>
 void candle::turret_camera(engine::perspective_camera& camera, float dt)
 {
 	auto [mouse_delta_x, mouse_delta_y] = engine::input::mouse_position();
@@ -110,6 +126,7 @@ void candle::turret_camera(engine::perspective_camera& camera, float dt)
 
 void candle::attack()
 {
+	//stuns all enemies in range
 	for (auto enemy : m_active_enemies)
 	{
 		if (glm::length(position() - enemy->position()) <= m_range && !enemy->isStunnded())
@@ -129,6 +146,7 @@ void candle::upgradeRight_lvl1(player& player)
 	}
 }
 
+//flash frequency
 void candle::upgradeRight_lvl2(player& player)
 {
 	if (player.score() >= m_ugr2_cost)
@@ -152,6 +170,7 @@ void candle::upgradeLeft_lvl1(player& player)
 	}
 }
 
+//flash duration
 void candle::upgradeLeft_lvl2(player& player)
 {
 	if (player.score() >= m_ugl2_cost)

@@ -17,6 +17,7 @@ player::player(engine::perspective_camera& camera)
 
 void player::update_camera(engine::perspective_camera& camera, const engine::timestep& ts)
 {
+	//reset camera to original position and orientation
 	if (m_reset_cam)
 	{
 		m_reset_cam = false;

@@ -36,6 +36,7 @@ void wizard_hat::update(std::vector<engine::ref<enemy>> enemies, float dt)
 
 	m_lightning.on_update(dt);
 
+	//attack if applicable
 	if (m_elapsed >= m_attack_speed)
 	{
 		m_elapsed = 0.f;
@@ -46,8 +47,10 @@ void wizard_hat::update(std::vector<engine::ref<enemy>> enemies, float dt)
 
 void wizard_hat::attack()
 {
+	//activate effect
 	m_lightning.activate(m_range, glm::vec3(position().x, position().y + 0.18f, position().z));
 
+	//damage applicable enemies
 	for (auto enemy : m_active_enemies)
 	{
 		if (glm::length(enemy->position() - position()) <= m_range)
@@ -56,6 +59,7 @@ void wizard_hat::attack()
 		}
 	}
 
+	//play zap sound
 	m_play_spark_sound = true;
 }
 
@@ -72,6 +76,7 @@ void wizard_hat::upgradeRight_lvl1(player& player)
 	}
 }
 
+//range
 void wizard_hat::upgradeRight_lvl2(player& player)
 {
 	if (player.score() >= m_ugr2_cost)
@@ -96,6 +101,7 @@ void wizard_hat::upgradeLeft_lvl1(player& player)
 	}
 }
 
+//fire rate
 void wizard_hat::upgradeLeft_lvl2(player& player)
 {
 	if (player.score() >= m_ugl2_cost)

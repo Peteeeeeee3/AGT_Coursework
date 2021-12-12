@@ -132,7 +132,6 @@ example_layer::example_layer()
 	hud_init();
 
 	//set spider properties
-	//engine::ref<engine::model> spider_model = engine::model::create("assets/models/static/spider/Only_Spider_with_Animations_Export.obj");
 	engine::ref<engine::model> spider_model = engine::model::create("assets/models/static/spider/spider.fbx");
 	m_spider_props.meshes = spider_model->meshes();
 	m_spider_props.textures = spider_model->textures();
@@ -182,6 +181,7 @@ example_layer::example_layer()
 	m_toygun_props.bounding_shape = glm::vec3(100.f, 100.f, 1.2f);
 	m_placement_gun = toygun::create(m_toygun_props, m_active_enemies);
 
+	//initialise candle properties
 	m_candle_body = engine::cylinder::create(150, 1.f, 4.f, glm::vec3(0.f, 0.f, 0.f));
 	m_candle_flame = engine::pentahedron::create(.5f, .5f, glm::vec3(0.f, 4.f, 0.f));
 	engine::ref<engine::texture_2d> candle_texture = engine::texture_2d::create("assets/textures/path.png", true);
@@ -245,6 +245,7 @@ example_layer::example_layer()
 
 	m_3d_camera.set_view_matrix(glm::vec3(0.f, 10.f, 0.f), glm::vec3(-5.f, 0.f, -5.f));
 
+	//play theme
 	m_audio_manager->play("theme");
 }
 
@@ -287,6 +288,7 @@ void example_layer::on_update(const engine::timestep& time_step)
 	{
 		m_directionalLight.Color = { 0.6f, 0.6f, 0.6f };
 
+		//handle between waves timer
 		if (m_active_enemies.size() == 0)
 		{
 			m_precision_timer += time_step;
@@ -296,13 +298,16 @@ void example_layer::on_update(const engine::timestep& time_step)
 				m_precision_timer = 0.f;
 			}
 
+			//new wave if timer is over
 			if (m_display_wave_timer >= m_wave_start_time)
 				new_wave();
 		}
 
+		//update enemies
 		for (auto enemy : m_active_enemies)
 			enemy->update(m_player, m_active_enemies, m_checkpoints, time_step);
 
+		//update position and target of leading light
 		if (m_active_enemies.size() > 0)
 		{
 			int target_index = lead_light_target_index();
@@ -316,58 +321,62 @@ void example_layer::on_update(const engine::timestep& time_step)
 			m_enemy_lead_light_source->set_position(glm::vec3(-25.f, 0.1f, 0.f));
 		}
 
+		//update towers
 		for (auto tower : m_towers)
 		{
 			tower->update(m_active_enemies, time_step);
 			std::string name = typeid(*tower.get()).name();
+			//specific to togyuns
 			if (name == "class toygun")
 			{
 				auto gun_cast = std::dynamic_pointer_cast<toygun>(tower);
+				//play sfx
 				if (gun_cast->play_shot_sound())
 				{
 					m_audio_manager->play_spatialised_sound("shot", m_3d_camera.position(), gun_cast->position());
 					m_audio_manager->volume("shot", m_volume);
 				}
 			}
+			//specific to wizard hat
 			if (name == "class wizard_hat")
 			{
+				//play sfx
 				if (std::dynamic_pointer_cast<wizard_hat>(tower)->play_spark())
 				{
 					m_audio_manager->play("spark");
 					m_audio_manager->volume("spark", m_volume);
 				}
 			}
+			//specific to candle
 			if (name == "class candle")
 			{
 				auto candle_cast = std::dynamic_pointer_cast<candle>(tower);
 				glm::vec3 flame_pos = { candle_cast->position().x, candle_cast->position().y + 2.45f, candle_cast->position().z };
+				//see if candle is the current camera
 				if (candle_cast->active_cam())
 				{
-					//m_active_candle_cam = candle_cast;
+					//update any shots
 					candle_cast->update_shot(m_3d_camera, time_step);
 					if (candle_cast->active_shot())
 					{
+						//remove ended shots
 						if (candle_cast->shot().to_remove())
 						{
 							candle_cast->reset_shot();
 						}
 					}
 				}
-				/*else 
-				{
-					m_active_candle_cam = nullptr;
-				}*/
 			}
 		}
-		// update camera via player class
-		// this is separated from the camera class as I will need to make multiple cameras and I do not want their codes to interfere
-		// the player can be imagined as a floating camera with some attributes like health, score, etc.
+
+		//default camera
 		if (m_active_candle_cam == nullptr)
 		{
 			m_3d_camera.on_update(time_step);
 			m_player.update_camera(m_3d_camera, time_step);
 			m_raycaster.on_update(m_3d_camera);
 			glm::vec3 new_pos = m_raycaster.point_on_surface();
+			//update placement towers, use 1,2,3 to display when in game
 			m_placement_cone->set_position(new_pos);
 			m_placement_cone->range_highlight()->set_position(new_pos);
 			m_placement_cone->update_bbox();
@@ -380,6 +389,7 @@ void example_layer::on_update(const engine::timestep& time_step)
 		}
 		else
 		{
+			//update candle camera if selected
 			m_active_candle_cam->turret_camera(m_3d_camera, time_step);
 		}
 
@@ -503,6 +513,7 @@ void example_layer::on_render()
 			glm::mat4 tower_transform(1.f);
 			
 			std::string name = typeid(*tower.get()).name();
+			//specific to toy guns for scaling purposes
 			if (name == "class toygun")
 			{
 				tower_transform = glm::translate(tower_transform, glm::vec3(tower->position().x, tower->position().y + 1.f, tower->position().z));
@@ -515,16 +526,22 @@ void example_layer::on_render()
 				tower_transform = glm::translate(tower_transform, tower->position());
 				tower_transform = glm::scale(tower_transform, glm::vec3(0.5f));
 			}
-			//tower->bounding_box().on_render(1.f, 1.f, 0.f, mesh_shader);
 			engine::renderer::submit(mesh_shader, tower_transform, tower);
+			//render ranges, if required
 			if (tower->to_render_range())
 				tower->render_range(mesh_shader);
+
+			//specific to wizard hat
 			if (name == "class wizard_hat")
 			{
+				//render lightning of wizard hat
 				std::dynamic_pointer_cast<wizard_hat>(tower)->lightning().on_render(mesh_shader);
 			}
+
+			//specific to candle
 			if (name == "class candle")
 			{
+				//update flame, fireballs and their aoe effect
 				std::dynamic_pointer_cast<candle>(tower)->fire_ring().on_render(mesh_shader);
 				if (std::dynamic_pointer_cast<candle>(tower)->active_shot())
 					std::dynamic_pointer_cast<candle>(tower)->shot().on_render(mesh_shader);
@@ -538,10 +555,13 @@ void example_layer::on_render()
 			{
 				if (m_active_enemies.at(i)->isDead())
 				{
+					//handle enemy death
 					if (m_active_enemies.at(i)->state() != 8)
 						m_player.set_score(m_player.score() + m_active_enemies.at(i)->strength());
+					//handle enemy reaching finish
 					else
 						m_player.set_score(m_player.score() - m_active_enemies.at(i)->strength());
+					//erase flagged enemy
 					m_active_enemies.erase(m_active_enemies.begin() + i);
 				}
 				else
@@ -553,6 +573,7 @@ void example_layer::on_render()
 			}
 		}
 
+		//render placement aid towers
 		if (m_render_cone)
 		{
 			glm::mat4 transform(1.f);
@@ -586,6 +607,7 @@ void example_layer::on_render()
 
 		engine::renderer::begin_scene(m_3d_camera, mesh_shader);
 
+		//render enemy lead highlight light
 		std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("gNumPointLights", (int) m_num_point_lights);
 		m_enemy_lead_light.submit(mesh_shader, 0);
 		m_lightsource_material->submit(mesh_shader);
@@ -594,9 +616,10 @@ void example_layer::on_render()
 		for (auto tower : m_towers)
 		{
 			std::string name = typeid(*tower.get()).name();
-
+			//specific to candle
 			if (name == "class candle")
 			{
+				//render candle light
 				m_num_point_lights++;
 				std::dynamic_pointer_cast<candle>(tower)->flame()->on_render(m_3d_camera, mesh_shader);
 				if (std::dynamic_pointer_cast<candle>(tower)->active_shot())
@@ -605,6 +628,7 @@ void example_layer::on_render()
 			}
 		}
 
+		//reset number of point lights to avoid problems
 		m_num_point_lights = 1;
 		engine::renderer::end_scene();
 
@@ -624,6 +648,7 @@ void example_layer::on_event(engine::event& event)
 			engine::render_command::toggle_wireframe();
 		}
 
+		//volume up
 		if (e.key_code() == engine::key_codes::KEY_UP)
 		{
 			if (m_volume <= 2.9f)
@@ -632,6 +657,7 @@ void example_layer::on_event(engine::event& event)
 			m_audio_manager->volume("boss", m_volume);
 		}
 
+		//volume down
 		if (e.key_code() == engine::key_codes::KEY_DOWN)
 		{
 			if (m_volume >= 0.1f)
@@ -649,13 +675,16 @@ void example_layer::on_event(engine::event& event)
 				inMenu = false;
 		}
 
+		//during game time
 		if (!inMenu)
 		{
+			//start new wave
 			if (e.key_code() == engine::key_codes::KEY_N)
 			{
 				new_wave();
 			}
 
+			//turret cam
 			if (e.key_code() == engine::key_codes::KEY_C)
 			{
 				if (m_selected_tower != nullptr)
@@ -663,6 +692,7 @@ void example_layer::on_event(engine::event& event)
 					std::string name = typeid(*m_selected_tower.get()).name();
 					if (name == "class candle")
 					{
+						//enter camera
 						if (!std::dynamic_pointer_cast<candle>(m_selected_tower)->active_cam())
 						{
 							std::dynamic_pointer_cast<candle>(m_selected_tower)->toggle_cam(true);
@@ -673,6 +703,7 @@ void example_layer::on_event(engine::event& event)
 				}
 				else if (m_active_candle_cam != nullptr)
 				{
+					//exit camera
 					if (m_active_candle_cam->active_cam())
 					{
 						m_active_candle_cam->toggle_cam(false);
@@ -683,6 +714,7 @@ void example_layer::on_event(engine::event& event)
 				}
 			}
 
+			//activate placement aid toy gun
 			if (e.key_code() == engine::key_codes::KEY_1)
 			{
 				if (m_render_gun)
@@ -700,6 +732,8 @@ void example_layer::on_event(engine::event& event)
 					m_placement_candle->set_to_render_range(false);
 				}
 			}
+
+			//activate placement aid wizard hat
 			if (e.key_code() == engine::key_codes::KEY_2)
 			{
 				if (m_render_cone)
@@ -717,6 +751,8 @@ void example_layer::on_event(engine::event& event)
 					m_placement_gun->set_to_render_range(false);
 				}
 			}
+
+			//activate placement aid candle
 			if (e.key_code() == engine::key_codes::KEY_3)
 			{
 				if (m_render_candle)
@@ -734,6 +770,8 @@ void example_layer::on_event(engine::event& event)
 					m_placement_cone->set_to_render_range(false);
 				}
 			}
+
+			//close upgrade tab
 			if (e.key_code() == engine::key_codes::KEY_X)
 			{
 				if (m_selected_tower != nullptr)
@@ -744,6 +782,7 @@ void example_layer::on_event(engine::event& event)
 
 			if (m_selected_tower != nullptr)
 			{
+				//upgrade tower left branch
 				if (e.key_code() == engine::key_codes::KEY_K)
 				{
 					if (m_selected_tower->left_level() == 0)
@@ -755,6 +794,8 @@ void example_layer::on_event(engine::event& event)
 						m_selected_tower->upgradeLeft_lvl2(m_player);
 					}
 				}
+
+				//upgrade tower right branch
 				if (e.key_code() == engine::key_codes::KEY_L)
 				{
 					if (m_selected_tower->right_level() == 0)
@@ -799,42 +840,52 @@ void example_layer::on_event(engine::event& event)
 		}
     }
 
+	//tower placement
 	if (engine::input::mouse_button_pressed(0))
 	{
+		//place wizard hat
 		if (m_render_cone)
 		{
 			float cost = 600.f;
 			if (m_player.score() >= cost && placement_possible(m_placement_cone->bounding_box()))
 			{
 				m_wiz_props.position = m_placement_cone->position();
+				//add to towers
 				m_towers.push_back(wizard_hat::create(m_wiz_props, m_active_enemies));
 				m_render_cone = false;
 				m_player.set_score(m_player.score() - cost);
 			}
 		}
+
+		//place candle
 		if (m_render_candle)
 		{
 			float cost = 800.f;
 			if (m_player.score() >= cost && placement_possible(m_placement_candle->bounding_box()))
 			{
 				m_candle_props.position = m_placement_candle->position();
+				//add to towers
 				m_towers.push_back(candle::create(m_candle_props, m_active_enemies));
 				m_render_candle = false;
 				m_player.set_score(m_player.score() - cost);
 			}
 		}
+
+		//place toy gun
 		if (m_render_gun)
 		{
 			float cost = 650.f;
 			if (m_player.score() >= cost && placement_possible(m_placement_gun->bounding_box()))
 			{
 				m_toygun_props.position = m_placement_gun->position();
+				//add to towers
 				m_towers.push_back(toygun::create(m_toygun_props, m_active_enemies));
 				m_render_gun = false;
 				m_player.set_score(m_player.score() - cost);
 			}
 		}
 
+		//unselect tower if mouse is clicked away 
 		if (!(m_render_cone || m_render_candle || m_render_gun))
 		{
 			if (m_selected_tower != nullptr)
@@ -859,22 +910,23 @@ void example_layer::init_path()
 			size.x += .5f;
 		if (size.z == 0.f)
 			size.z += .5f;
+		//initialise path highlights
 		engine::ref<engine::cuboid> path_shape = engine::cuboid::create(size, false, true);
-		//engine::ref<engine::texture_2d> path_texture = engine::texture_2d::create("assets/textures/path.png", true);
 		engine::game_object_properties path_props;
 		path_props.position = m_pp_positions[i];
 		path_props.meshes = { path_shape->mesh() };
 		path_props.scale = glm::vec3(1);
-		//path_props.textures = { path_texture };
 		path_props.restitution = 0.92f;
 		path_props.bounding_shape = { size.x, size.y, size.z };
 		engine::ref<engine::game_object> path_piece = engine::game_object::create(path_props);
 		m_path.push_back(path_piece);
+		//initialise path bounding boxes
 		m_path_bboxes.push_back(engine::bounding_box());
 		m_path_bboxes.at(m_path_bboxes.size() - 1).set_box(size.x * 2, size.y * 2, size.z * 2, m_pp_positions[i]);
 	}
 }
 
+//render path
 void example_layer::draw_path(const engine::ref<engine::shader>& shader)
 {
 	for (auto piece : m_path)
@@ -888,15 +940,16 @@ void example_layer::draw_path(const engine::ref<engine::shader>& shader)
 //wave and enemy handling functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//figure out why it crashes upon pressing n and also why nothing renders
-
 void example_layer::new_wave()
 {
+	//only start new wave if there is no active wave
 	if (m_active_enemies.size() == 0)
 	{
+		//handle audio
 		m_audio_manager->pause("boss");
 		m_audio_manager->pause("theme");
 		++m_wave_number;
+		//spawn claptraps
 		if (m_wave_number % 2 == 0)
 		{
 			for (int i = 0; i < m_wave_number / 2; ++i)
@@ -905,6 +958,7 @@ void example_layer::new_wave()
 			}
 		}
 
+		//spawn mech
 		if (m_wave_number % 5 == 0)
 		{
 			for (int i = 0; i < m_wave_number / 5; ++i)
@@ -913,21 +967,25 @@ void example_layer::new_wave()
 			}
 		}
 
+		//spawn ironman
 		if (m_wave_number % 10 == 0)
 		{
 			for (int i = 0; i < m_wave_number / 10; ++i)
 			{
 				m_active_enemies.push_back(enemy::create(m_ironman_props, 1000.f, 50.f, 0.4f, 5.f * i, enemy::e_type::IRONMAN));
 			}
+			//start boss music
 			m_audio_manager->unpause("boss");
 			m_audio_manager->volume("boss", m_volume);
 		}
 		else
 		{
+			//start theme music
 			m_audio_manager->unpause("theme");
 			m_audio_manager->volume("theme", m_volume);
 		}
 
+		//spawn spiders
 		for (int i = 0; i < m_enemy_count; ++i)
 		{
 			m_active_enemies.push_back(enemy::create(m_spider_props, 50.f, 5.f, 3.f, 1.f * i, enemy::e_type::SPIDER));
@@ -936,6 +994,7 @@ void example_layer::new_wave()
 		++m_enemy_count;
 		m_display_wave_timer = 0;
 		m_precision_timer = 0.f;
+		//play bell sound to start wave
 		m_audio_manager->play("bell");
 		m_audio_manager->volume("bell", m_volume);
 	}
@@ -945,13 +1004,16 @@ int example_layer::lead_light_target_index()
 {
 	int return_index = NULL;
 	engine::ref<enemy> current_target;
+	//only compute if there are active enemies
 	if (m_active_enemies.size() != 0)
 	{
+		//initialize current target to be the first entry
 		current_target = m_active_enemies.at(0);
 		for (int i = 0; i < m_active_enemies.size(); ++i)
 		{
 			if (m_active_enemies.at(i)->distance_covered() > current_target->distance_covered())
 			{
+				//override current target if a more suitable one is found
 				current_target = m_active_enemies.at(i);
 				return_index = i;
 			}
@@ -980,6 +1042,7 @@ void example_layer::hud_on_render(engine::ref<engine::shader> shader)
 	//candle
 	m_text_manager->render_text(text_shader, "800", (float)engine::application::window().width() - 95.f, (float)engine::application::window().height() / 2 - 128.f, .4f, glm::vec4(0.f, 0.f, 0.f, 1.f));
 
+	//only render when there is no active wave
 	if (m_active_enemies.size() == 0)
 	{
 		m_text_manager->render_text(text_shader, "Next wave in: " + std::to_string(m_wave_start_time - m_display_wave_timer) + "s", (float)engine::application::window().width() / 2.f - 135.f, (float)engine::application::window().height() - 130.f, .75f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
@@ -1046,6 +1109,7 @@ void example_layer::hud_on_render(engine::ref<engine::shader> shader)
 	//health
 	glm::mat4 health_transform(1.f);
 	health_transform = glm::translate(health_transform, glm::vec3(-1.4f, 0.75f, 0.2f));
+	//scale heart appropriately
 	if (m_player.health() > 0)
 		health_transform = glm::scale(health_transform, glm::vec3(0.01f * m_player.health() + 0.3f));
 	else
@@ -1055,6 +1119,7 @@ void example_layer::hud_on_render(engine::ref<engine::shader> shader)
 	m_health_txt2d->bind();
 	engine::renderer::submit(shader, m_health_quad->mesh(), health_transform);
 
+	//only render if a tower is selected
 	if (m_selected_tower != nullptr)
 	{
 		//upgrades
@@ -1131,6 +1196,7 @@ void example_layer::hud_on_render(engine::ref<engine::shader> shader)
 			m_upgrade_background_texture->bind();
 		engine::renderer::submit(shader, m_left_upgrade->mesh(), rugs_transfrom);
 
+		//render upgrading text
 		m_text_manager->render_text(text_shader, "Press \"K\" to upgrade", (float)engine::application::window().width() / 2 - 250.f, 140.f, .5f, glm::vec4(0.f, 0.f, 0.f, 1.f));
 		m_text_manager->render_text(text_shader, "Press \"L\" to upgrade", (float)engine::application::window().width() / 2 + 30.f, 140.f, .5f, glm::vec4(0.f, 0.f, 0.f, 1.f));
 	}
@@ -1178,6 +1244,7 @@ void example_layer::hud_init()
 
 bool example_layer::placement_possible(engine::bounding_box test_box)
 {
+	//placement is possible unless there is a collision
 	bool test_result = true;
 
 	//check against other towers
@@ -1197,6 +1264,7 @@ void example_layer::tower_select()
 {
 	for (auto tower : m_towers)
 	{
+		//select first tower with colliding bounding boxes
 		if (m_placement_gun->bounding_box().collision(tower->bounding_box()))
 		{
 			m_selected_tower = tower;

@@ -47,7 +47,7 @@ private:
 	//player health
 	float m_health = 100;
 	//player score
-	float m_score = 10000;
+	float m_score = 1000;
 
 	bool m_reset_cam = false;
 
