@@ -1,3 +1,10 @@
+// _____		 _____   _____   _____    _   __  _____   _____
+//|  _  |		|  ___|	|  _  | |  _  |  | | / / |  _  | |  ___|
+//| |_| |		| |___	| |_| | | |_| |  | |/ /  | |_| | | |___ 
+//|  ___|		|  ___|	|  _  | |  _  |  |   |   |  _  | |___  | 
+//| |		_   | |		| | | | | | \ \  | |\ \  | | | |  ___| |
+//|_|	   |_|  |_|		|_| |_| |_|  \_\ |_| \_\ |_| |_| |_____|
+
 #pragma once
 #include <engine.h>
 #include "glm/gtx/rotate_vector.hpp"
@@ -40,7 +47,7 @@ private:
 	//player health
 	float m_health = 100;
 	//player score
-	float m_score = 1000;
+	float m_score = 10000;
 
 	bool m_reset_cam = false;
 

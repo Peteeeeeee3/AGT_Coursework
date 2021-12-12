@@ -1,3 +1,10 @@
+// _____		 _____   _____   _____    _   __  _____   _____
+//|  _  |		|  ___|	|  _  | |  _  |  | | / / |  _  | |  ___|
+//| |_| |		| |___	| |_| | | |_| |  | |/ /  | |_| | | |___ 
+//|  ___|		|  ___|	|  _  | |  _  |  |   |   |  _  | |___  | 
+//| |		_   | |		| | | | | | \ \  | |\ \  | | | |  ___| |
+//|_|	   |_|  |_|		|_| |_| |_|  \_\ |_| \_\ |_| |_| |_____|
+
 #include "example_layer.h"
 #include "platform/opengl/gl_shader.h"
 
@@ -26,6 +33,7 @@ example_layer::example_layer()
     :m_2d_camera(-1.6f, 1.6f, -0.9f, 0.9f), 
     m_3d_camera((float)engine::application::window().width(), (float)engine::application::window().height())
 {
+	m_raycaster = engine::raycaster::raycaster(m_3d_camera, (float)engine::application::window().width(), (float)engine::application::window().height());
 	// Hide the mouse and lock it inside the window
 	//engine::input::anchor_mouse(true);
 	//engine::application::window().hide_mouse_cursor();
@@ -35,7 +43,7 @@ example_layer::example_layer()
 	m_audio_manager->init();
 	m_audio_manager->load_sound("assets/audio/Chill Jazz Hop - Dar Golan - 85bpm - 02-47.mp3", engine::sound_type::track, "theme"); // Royalty free music from https://www.dargolan-free.com/ambient-music
 	m_audio_manager->load_sound("assets/audio/Epic Battle - Dar Golan - 128bpm - 02-02.mp3", engine::sound_type::track, "boss"); // Royalty free music from https://www.dargolan-free.com/dramatic-music
-	m_audio_manager->load_sound("assets/audio/bbc_fire.mp3", engine::sound_type::spatialised, "fire"); // edited by me, original free educational and personal use, from https://sound-effects.bbcrewind.co.uk/
+	m_audio_manager->load_sound("assets/audio/bbc_electric.mp3", engine::sound_type::event, "spark"); // edited by me, original free educational and personal use, from https://sound-effects.bbcrewind.co.uk/
 	m_audio_manager->load_sound("assets/audio/bbc_outdoor_short.mp3", engine::sound_type::event, "bell"); // edited by me, original free for education and personal use, from https://sound-effects.bbcrewind.co.uk/
 	m_audio_manager->load_sound("assets/audio/bbc_gunshot.mp3", engine::sound_type::spatialised, "shot"); // edited by me, original free for education and personal use, from https://sound-effects.bbcrewind.co.uk/
 	m_audio_manager->play("boss");
@@ -162,31 +170,27 @@ example_layer::example_layer()
 
 	// load toy gun model and create object. set its properties
 	engine::ref<engine::model> toygun_model = engine::model::create("assets/models/static/Toy_Gun/handgun-lo.obj");
-	engine::game_object_properties toygun_props;
-	toygun_props.meshes = toygun_model->meshes();
-	toygun_props.textures = toygun_model->textures();
+	m_toygun_props.meshes = toygun_model->meshes();
+	m_toygun_props.textures = toygun_model->textures();
 	float toygun_scale = 0.0125f;
-	toygun_props.position = { -3.f, 3.f, 8.f };
-	toygun_props.scale = glm::vec3(toygun_scale);
-	m_menu_toygun_r = toygun::create(toygun_props, m_active_enemies);
-	toygun_props.position = { 3.f, 3.f, 8.f };
-	m_menu_toygun_l = toygun::create(toygun_props, m_active_enemies);
-	toygun_props.position = { 5.f, 0.f, 2.f };
-	toygun_props.bounding_shape = glm::vec3(100.f, 100.f, 1.2f);
-	m_game_gun = toygun::create(toygun_props, m_active_enemies);
-	m_towers.push_back(m_game_gun);
+	m_toygun_props.position = { -3.f, 3.f, 8.f };
+	m_toygun_props.scale = glm::vec3(toygun_scale);
+	m_menu_toygun_r = toygun::create(m_toygun_props, m_active_enemies);
+	m_toygun_props.position = { 3.f, 3.f, 8.f };
+	m_menu_toygun_l = toygun::create(m_toygun_props, m_active_enemies);
+	m_toygun_props.position = { 0.f, 0.f, 0.f };
+	m_toygun_props.bounding_shape = glm::vec3(100.f, 100.f, 1.2f);
+	m_placement_gun = toygun::create(m_toygun_props, m_active_enemies);
 
-	engine::game_object_properties candle_props;
 	m_candle_body = engine::cylinder::create(150, 1.f, 4.f, glm::vec3(0.f, 0.f, 0.f));
 	m_candle_flame = engine::pentahedron::create(.5f, .5f, glm::vec3(0.f, 4.f, 0.f));
 	engine::ref<engine::texture_2d> candle_texture = engine::texture_2d::create("assets/textures/path.png", true);
-	candle_props.position = { 3.f, 0.f, 7.f };
-	candle_props.meshes = { m_candle_body->mesh(), m_candle_flame->mesh() };
-	candle_props.textures = { candle_texture };
-	candle_props.scale = glm::vec3(1.f);
-	candle_props.bounding_shape = glm::vec3(1.f, 2.f, 1.f);
-	m_candle = candle::create(candle_props, m_active_enemies);
-	m_towers.push_back(m_candle);
+	m_candle_props.position = { 0.f, 0.f, 0.f };
+	m_candle_props.meshes = { m_candle_body->mesh(), m_candle_flame->mesh() };
+	m_candle_props.textures = { candle_texture };
+	m_candle_props.scale = glm::vec3(1.f);
+	m_candle_props.bounding_shape = glm::vec3(1.f, 2.f, 1.f);
+	m_placement_candle = candle::create(m_candle_props, m_active_enemies);
 
 	//menu text 
 	engine::ref<engine::cuboid> container_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, 0.5f), false, false);
@@ -212,16 +216,26 @@ example_layer::example_layer()
 	cont_props.textures = { cont_texture };
 	m_menu_controls = engine::game_object::create(cont_props);
 
+	// controls text2
+	engine::ref<engine::cuboid> cont2_shape = engine::cuboid::create(glm::vec3(10.f, 4.f, .5f), false, false);
+	engine::ref<engine::texture_2d> cont2_texture = engine::texture_2d::create("assets/textures/controls_text2.png", true);
+	engine::game_object_properties cont2_props;
+	cont2_props.position = { 0.f, 5.5f, -15.f };
+	cont2_props.meshes = { cont2_shape->mesh() };
+	float cont2_scale = 0.75f;
+	cont2_props.scale = glm::vec3(cont2_scale);
+	cont2_props.bounding_shape = glm::vec3(10.f, 4.f, 0.5f);
+	cont2_props.textures = { cont2_texture };
+	m_menu_controls2 = engine::game_object::create(cont2_props);
+
 	// create cone shape and add texture to it to create a wizard hat
 	engine::ref<engine::cone> cone_shape = engine::cone::create(150, 5.f, 3.f, glm::vec3(0.f, 0.f, 0.f));
 	engine::ref<engine::texture_2d> cone_texture = engine::texture_2d::create("assets/textures/wizard_hat.png", true);
-	engine::game_object_properties cone_props;
-	cone_props.position = { -13.f, 0.f, -3.f };
-	cone_props.meshes = { cone_shape->mesh() };
-	cone_props.textures = { cone_texture };
-	cone_props.bounding_shape = glm::vec3(2.5f, 2.5f, 1.5f);
-	m_cone = wizard_hat::create(cone_props, m_active_enemies);
-	m_towers.push_back(m_cone);
+	m_wiz_props.position = { 0.f, 0.f, 0.f };
+	m_wiz_props.meshes = { cone_shape->mesh() };
+	m_wiz_props.textures = { cone_texture };
+	m_wiz_props.bounding_shape = glm::vec3(2.5f, 2.5f, 1.5f);
+	m_placement_cone = wizard_hat::create(m_wiz_props, m_active_enemies);
 
 	m_game_objects.push_back(m_terrain);
 	
@@ -250,15 +264,23 @@ void example_layer::on_update(const engine::timestep& time_step)
 		m_menu_toygun_l->rotate(false, time_step);
 
 		// position correct cuboid before player
-		if (showingCtrls)
-		{
-			m_menu_controls->set_position(m_menu_active_pos);
-			m_menu_text->set_position(m_menu_inactive_pos);
-		}
-		else
+		if (showing_title)
 		{
 			m_menu_controls->set_position(m_menu_inactive_pos);
+			m_menu_controls2->set_position(m_menu_inactive_pos);
 			m_menu_text->set_position(m_menu_active_pos);
+		}
+		else if (showingCtrls)
+		{
+			m_menu_controls->set_position(m_menu_active_pos);
+			m_menu_controls2->set_position(m_menu_inactive_pos);
+			m_menu_text->set_position(m_menu_inactive_pos);
+		}
+		else if (showingCtrls2)
+		{
+			m_menu_controls2->set_position(m_menu_active_pos);
+			m_menu_controls->set_position(m_menu_inactive_pos);
+			m_menu_text->set_position(m_menu_inactive_pos);
 		}
 	}
 	else
@@ -307,18 +329,21 @@ void example_layer::on_update(const engine::timestep& time_step)
 					m_audio_manager->volume("shot", m_volume);
 				}
 			}
+			if (name == "class wizard_hat")
+			{
+				if (std::dynamic_pointer_cast<wizard_hat>(tower)->play_spark())
+				{
+					m_audio_manager->play("spark");
+					m_audio_manager->volume("spark", m_volume);
+				}
+			}
 			if (name == "class candle")
 			{
 				auto candle_cast = std::dynamic_pointer_cast<candle>(tower);
 				glm::vec3 flame_pos = { candle_cast->position().x, candle_cast->position().y + 2.45f, candle_cast->position().z };
-				if (glm::length(flame_pos - m_3d_camera.position()) <= 2.f)
-				{
-					m_audio_manager->play_spatialised_sound("fire", m_3d_camera.position(), flame_pos);
-					m_audio_manager->volume("fire", m_volume);
-				}
 				if (candle_cast->active_cam())
 				{
-					m_active_candle_cam = candle_cast;
+					//m_active_candle_cam = candle_cast;
 					candle_cast->update_shot(m_3d_camera, time_step);
 					if (candle_cast->active_shot())
 					{
@@ -327,12 +352,11 @@ void example_layer::on_update(const engine::timestep& time_step)
 							candle_cast->reset_shot();
 						}
 					}
-					break;
 				}
-				else
+				/*else 
 				{
 					m_active_candle_cam = nullptr;
-				}
+				}*/
 			}
 		}
 		// update camera via player class
@@ -342,6 +366,17 @@ void example_layer::on_update(const engine::timestep& time_step)
 		{
 			m_3d_camera.on_update(time_step);
 			m_player.update_camera(m_3d_camera, time_step);
+			m_raycaster.on_update(m_3d_camera);
+			glm::vec3 new_pos = m_raycaster.point_on_surface();
+			m_placement_cone->set_position(new_pos);
+			m_placement_cone->range_highlight()->set_position(new_pos);
+			m_placement_cone->update_bbox();
+			m_placement_gun->set_position(new_pos);
+			m_placement_gun->range_highlight()->set_position(new_pos);
+			m_placement_gun->update_bbox();
+			m_placement_candle->set_position(new_pos);
+			m_placement_candle->range_highlight()->set_position(new_pos);
+			m_placement_candle->update_bbox();
 		}
 		else
 		{
@@ -384,6 +419,7 @@ void example_layer::on_render()
 		m_material->submit(mesh_shader);
 		engine::renderer::submit(mesh_shader, m_menu_text);
 		engine::renderer::submit(mesh_shader, m_menu_controls);
+		engine::renderer::submit(mesh_shader, m_menu_controls2);
 
 		// right rotating menu gun 
 		glm::mat4 toygun_transfrom(1.f);
@@ -419,9 +455,47 @@ void example_layer::on_render()
 			texture->bind();
 		}
 		engine::renderer::submit(mesh_shader, m_game_skybox, skybox_transform);
-
 		// render terrain
 		engine::renderer::submit(mesh_shader, m_terrain);
+
+		// check affordable upgrades
+		if (m_selected_tower != nullptr)
+		{
+			//left level 1 
+			if (m_player.score() >= m_selected_tower->left_lvl1_upgrade_cost() && m_selected_tower->left_level() == 0)
+			{
+				can_afford_left_upgrade = true;
+			}
+			//left level 2
+			else if (m_player.score() >= m_selected_tower->left_lvl2_upgrade_cost() && m_selected_tower->left_level() == 1)
+			{
+				can_afford_left_upgrade = true;
+			}
+			else
+			{
+				can_afford_left_upgrade = false;
+			}
+
+			//right level 1
+			if (m_player.score() >= m_selected_tower->right_lvl1_upgrade_cost() && m_selected_tower->right_level() == 0)
+			{
+				can_afford_right_upgrade = true;
+			}
+			//left level 2
+			else if (m_player.score() >= m_selected_tower->right_lvl2_upgrade_cost() && m_selected_tower->right_level() == 1)
+			{
+				can_afford_right_upgrade = true;
+			}
+			else
+			{
+				can_afford_right_upgrade = false;
+			}
+		}
+
+		//render path
+		draw_path(mesh_shader);
+		//for (auto segment : m_path_bboxes)
+		//	segment.on_render(0.f, 0.f, 0.f, mesh_shader);
 		
 		//render towers
 		for (auto tower : m_towers)
@@ -479,29 +553,60 @@ void example_layer::on_render()
 			}
 		}
 
-		//render path
-		draw_path(mesh_shader);
+		if (m_render_cone)
+		{
+			glm::mat4 transform(1.f);
+			transform = glm::translate(transform, m_placement_cone->position());
+			transform = glm::scale(transform, glm::vec3(0.5f));
+			engine::renderer::submit(mesh_shader, transform, m_placement_cone);
+			m_placement_cone->render_range(mesh_shader);
+			m_placement_cone->bounding_box().on_render(0.f, 0.f, 0.f, mesh_shader);
+		}
+		if (m_render_candle)
+		{
+			glm::mat4 transform(1.f);
+			transform = glm::translate(transform, m_placement_candle->position());
+			transform = glm::scale(transform, glm::vec3(0.5f));
+			engine::renderer::submit(mesh_shader, transform, m_placement_candle);
+			m_placement_candle->render_range(mesh_shader);
+			m_placement_candle->bounding_box().on_render(0.f, 0.f, 0.f, mesh_shader);
+		}
+		if (m_render_gun)
+		{
+			glm::mat4 transform(1.f);
+			transform = glm::translate(transform, m_placement_gun->position());
+			transform = glm::scale(transform, glm::vec3(0.025f));
+			engine::renderer::submit(mesh_shader, transform, m_placement_gun);
+			m_placement_gun->render_range(mesh_shader);
+			m_placement_gun->bounding_box().on_render(0.f, 0.f, 0.f, mesh_shader);
+		}
+
 
 		engine::renderer::end_scene();
 
 		engine::renderer::begin_scene(m_3d_camera, mesh_shader);
+
+		std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("gNumPointLights", (int) m_num_point_lights);
+		m_enemy_lead_light.submit(mesh_shader, 0);
+		m_lightsource_material->submit(mesh_shader);
+		engine::renderer::submit(mesh_shader, m_enemy_lead_light_source->meshes().at(0), glm::translate(glm::mat4(1.f), m_enemy_lead_light.Position));
+
 		for (auto tower : m_towers)
 		{
 			std::string name = typeid(*tower.get()).name();
 
 			if (name == "class candle")
 			{
+				m_num_point_lights++;
 				std::dynamic_pointer_cast<candle>(tower)->flame()->on_render(m_3d_camera, mesh_shader);
 				if (std::dynamic_pointer_cast<candle>(tower)->active_shot())
 					std::dynamic_pointer_cast<candle>(tower)->shot().flame()->on_render(m_3d_camera, mesh_shader);
-				std::dynamic_pointer_cast<candle>(tower)->light_render(mesh_shader);
+				std::dynamic_pointer_cast<candle>(tower)->light_render(mesh_shader, m_num_point_lights);
 			}
 		}
 
-		std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("gNumPointLights", (int)m_num_point_lights);
-		m_enemy_lead_light.submit(mesh_shader, 0);
-		m_lightsource_material->submit(mesh_shader);
-		engine::renderer::submit(mesh_shader, m_enemy_lead_light_source->meshes().at(0), glm::translate(glm::mat4(1.f), m_enemy_lead_light.Position));
+		m_num_point_lights = 1;
+		engine::renderer::end_scene();
 
 		//render hud
 		hud_on_render(mesh_shader);
@@ -525,9 +630,6 @@ void example_layer::on_event(engine::event& event)
 				m_volume += 0.1f;
 			m_audio_manager->volume("theme", m_volume);
 			m_audio_manager->volume("boss", m_volume);
-			m_audio_manager->volume("fire", m_volume);
-			m_audio_manager->volume("bell", m_volume);
-			m_audio_manager->volume("shot", m_volume);
 		}
 
 		if (e.key_code() == engine::key_codes::KEY_DOWN)
@@ -536,9 +638,6 @@ void example_layer::on_event(engine::event& event)
 				m_volume -= 0.1f;
 			m_audio_manager->volume("theme", m_volume);
 			m_audio_manager->volume("boss", m_volume);
-			m_audio_manager->volume("fire", m_volume);
-			m_audio_manager->volume("bell", m_volume);
-			m_audio_manager->volume("shot", m_volume);
 		}
 
 		// detect player opening menu
@@ -556,25 +655,115 @@ void example_layer::on_event(engine::event& event)
 			{
 				new_wave();
 			}
+
 			if (e.key_code() == engine::key_codes::KEY_C)
 			{
-				for (auto tower : m_towers)
+				if (m_selected_tower != nullptr)
 				{
-					std::string name = typeid(*tower.get()).name();
+					std::string name = typeid(*m_selected_tower.get()).name();
 					if (name == "class candle")
 					{
-						if (std::dynamic_pointer_cast<candle>(tower)->active_cam())
+						if (!std::dynamic_pointer_cast<candle>(m_selected_tower)->active_cam())
 						{
-							std::dynamic_pointer_cast<candle>(tower)->toggle_cam(false);
-							engine::application::window().show_mouse_cursor();
-							m_player.cam_reset();
-						}
-						else
-						{
-							std::dynamic_pointer_cast<candle>(tower)->toggle_cam(true);
+							std::dynamic_pointer_cast<candle>(m_selected_tower)->toggle_cam(true);
+							m_active_candle_cam = std::dynamic_pointer_cast<candle>(m_selected_tower);
 							engine::application::window().hide_mouse_cursor();
 						}
-						break;
+					}
+				}
+				else if (m_active_candle_cam != nullptr)
+				{
+					if (m_active_candle_cam->active_cam())
+					{
+						m_active_candle_cam->toggle_cam(false);
+						m_active_candle_cam = nullptr;
+						engine::application::window().show_mouse_cursor();
+						m_player.cam_reset();
+					}
+				}
+			}
+
+			if (e.key_code() == engine::key_codes::KEY_1)
+			{
+				if (m_render_gun)
+				{
+					m_render_gun = false;
+					m_placement_gun->set_to_render_range(false);
+				}
+				else
+				{
+					m_render_gun = true;
+					m_placement_gun->set_to_render_range(true);
+					m_render_cone = false;
+					m_placement_cone->set_to_render_range(false);
+					m_render_candle = false;
+					m_placement_candle->set_to_render_range(false);
+				}
+			}
+			if (e.key_code() == engine::key_codes::KEY_2)
+			{
+				if (m_render_cone)
+				{
+					m_render_cone = false;
+					m_placement_cone->set_to_render_range(false);
+				}
+				else
+				{
+					m_render_cone = true;
+					m_placement_cone->set_to_render_range(true);
+					m_render_candle = false;
+					m_placement_candle->set_to_render_range(false);
+					m_render_gun = false;
+					m_placement_gun->set_to_render_range(false);
+				}
+			}
+			if (e.key_code() == engine::key_codes::KEY_3)
+			{
+				if (m_render_candle)
+				{
+					m_render_candle = false;
+					m_placement_candle->set_to_render_range(false);
+				}
+				else
+				{
+					m_render_candle = true;
+					m_placement_candle->set_to_render_range(true);
+					m_render_gun = false;
+					m_placement_gun->set_to_render_range(false);
+					m_render_cone = false;
+					m_placement_cone->set_to_render_range(false);
+				}
+			}
+			if (e.key_code() == engine::key_codes::KEY_X)
+			{
+				if (m_selected_tower != nullptr)
+				{
+					tower_unselect();
+				}
+			}
+
+			if (m_selected_tower != nullptr)
+			{
+				if (e.key_code() == engine::key_codes::KEY_K)
+				{
+					if (m_selected_tower->left_level() == 0)
+					{
+						m_selected_tower->upgradeLeft_lvl1(m_player);
+					}
+					else if (m_selected_tower->left_level() == 1)
+					{
+						m_selected_tower->upgradeLeft_lvl2(m_player);
+					}
+				}
+				if (e.key_code() == engine::key_codes::KEY_L)
+				{
+					if (m_selected_tower->right_level() == 0)
+					{
+						m_selected_tower->upgradeRight_lvl1(m_player);
+					}
+					else if (m_selected_tower->right_level() == 1)
+					{
+						m_selected_tower->upgradeRight_lvl2(m_player);
 					}
 				}
 			}
@@ -591,13 +780,69 @@ void example_layer::on_event(engine::event& event)
 			// toggle controls
 			if (e.key_code() == engine::key_codes::KEY_C)
 			{
-				if (!showingCtrls)
+				if (showing_title)
+				{
 					showingCtrls = true;
-				else
+					showing_title = false;
+				}
+				else if (showingCtrls)
+				{
 					showingCtrls = false;
+					showingCtrls2 = true;
+				}
+				else
+				{
+					showing_title = true;
+					showingCtrls2 = false;
+				}
 			}
 		}
     }
+
+	if (engine::input::mouse_button_pressed(0))
+	{
+		if (m_render_cone)
+		{
+			float cost = 600.f;
+			if (m_player.score() >= cost && placement_possible(m_placement_cone->bounding_box()))
+			{
+				m_wiz_props.position = m_placement_cone->position();
+				m_towers.push_back(wizard_hat::create(m_wiz_props, m_active_enemies));
+				m_render_cone = false;
+				m_player.set_score(m_player.score() - cost);
+			}
+		}
+		if (m_render_candle)
+		{
+			float cost = 800.f;
+			if (m_player.score() >= cost && placement_possible(m_placement_candle->bounding_box()))
+			{
+				m_candle_props.position = m_placement_candle->position();
+				m_towers.push_back(candle::create(m_candle_props, m_active_enemies));
+				m_render_candle = false;
+				m_player.set_score(m_player.score() - cost);
+			}
+		}
+		if (m_render_gun)
+		{
+			float cost = 650.f;
+			if (m_player.score() >= cost && placement_possible(m_placement_gun->bounding_box()))
+			{
+				m_toygun_props.position = m_placement_gun->position();
+				m_towers.push_back(toygun::create(m_toygun_props, m_active_enemies));
+				m_render_gun = false;
+				m_player.set_score(m_player.score() - cost);
+			}
+		}
+
+		if (!(m_render_cone || m_render_candle || m_render_gun))
+		{
+			if (m_selected_tower != nullptr)
+				tower_unselect();
+			else if (m_active_candle_cam == nullptr)
+				tower_select();
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -622,8 +867,11 @@ void example_layer::init_path()
 		path_props.scale = glm::vec3(1);
 		//path_props.textures = { path_texture };
 		path_props.restitution = 0.92f;
+		path_props.bounding_shape = { size.x, size.y, size.z };
 		engine::ref<engine::game_object> path_piece = engine::game_object::create(path_props);
 		m_path.push_back(path_piece);
+		m_path_bboxes.push_back(engine::bounding_box());
+		m_path_bboxes.at(m_path_bboxes.size() - 1).set_box(size.x * 2, size.y * 2, size.z * 2, m_pp_positions[i]);
 	}
 }
 
@@ -726,11 +974,11 @@ void example_layer::hud_on_render(engine::ref<engine::shader> shader)
 	m_text_manager->render_text(text_shader, "Wave: " + std::to_string((int)m_wave_number), (float) engine::application::window().width() - 135.f, (float) engine::application::window().height() - 65.f, .55f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
 	//tower prices
 	//gun
-	m_text_manager->render_text(text_shader, "650", (float)engine::application::window().width() - 95.f, (float)engine::application::window().height() / 2 + 33.f, .4f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+	m_text_manager->render_text(text_shader, "650", (float)engine::application::window().width() - 95.f, (float)engine::application::window().height() / 2 + 33.f, .4f, glm::vec4(0.f, 0.f, 0.f, 1.f));
 	//wiz hat
-	m_text_manager->render_text(text_shader, "600", (float)engine::application::window().width() - 95.f, (float)engine::application::window().height() / 2 - 46.f, .4f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+	m_text_manager->render_text(text_shader, "600", (float)engine::application::window().width() - 95.f, (float)engine::application::window().height() / 2 - 46.f, .4f, glm::vec4(0.f, 0.f, 0.f, 1.f));
 	//candle
-	m_text_manager->render_text(text_shader, "800", (float)engine::application::window().width() - 95.f, (float)engine::application::window().height() / 2 - 128.f, .4f, glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+	m_text_manager->render_text(text_shader, "800", (float)engine::application::window().width() - 95.f, (float)engine::application::window().height() / 2 - 128.f, .4f, glm::vec4(0.f, 0.f, 0.f, 1.f));
 
 	if (m_active_enemies.size() == 0)
 	{
@@ -806,6 +1054,86 @@ void example_layer::hud_on_render(engine::ref<engine::shader> shader)
 	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
 	m_health_txt2d->bind();
 	engine::renderer::submit(shader, m_health_quad->mesh(), health_transform);
+
+	if (m_selected_tower != nullptr)
+	{
+		//upgrades
+		glm::mat4 upgrade_transform(1.f);
+		upgrade_transform = glm::translate(upgrade_transform, glm::vec3(0.f, -0.75f, 0.2f));
+		std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", .3f);
+		std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+		m_button_bkgrnd->bind();
+		engine::renderer::submit(shader, m_upgrade_zone->mesh(), upgrade_transform);
+
+		if (m_selected_tower->left_level() >= 1)
+		{
+			//left level 1
+			glm::mat4 l1_left_transform(1.f);
+			l1_left_transform = glm::translate(l1_left_transform, glm::vec3(-0.4f, -0.65f, 0.21f));
+			std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", .3f);
+			std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+			m_upgrade_level_green_texture->bind();
+			engine::renderer::submit(shader, m_ugl1_indicator->mesh(), l1_left_transform);
+		}
+
+		if (m_selected_tower->left_level() >= 2)
+		{
+			//left level 2
+			glm::mat4 l2_left_transform(1.f);
+			l2_left_transform = glm::translate(l2_left_transform, glm::vec3(-0.3f, -0.65f, 0.21f));
+			std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", .3f);
+			std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+			m_upgrade_level_green_texture->bind();
+			engine::renderer::submit(shader, m_ugl2_indicator->mesh(), l2_left_transform);
+		}
+
+		if (m_selected_tower->right_level() >= 1)
+		{
+			//right level 1
+			glm::mat4 l1_right_transform(1.f);
+			l1_right_transform = glm::translate(l1_right_transform, glm::vec3(0.3f, -0.65f, 0.21f));
+			std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", .3f);
+			std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+			m_upgrade_level_green_texture->bind();
+			engine::renderer::submit(shader, m_ugr1_indicator->mesh(), l1_right_transform);
+		}
+
+		if (m_selected_tower->right_level() >= 2)
+		{
+			//right level 2
+			glm::mat4 l2_right_transform(1.f);
+			l2_right_transform = glm::translate(l2_right_transform, glm::vec3(0.4f, -0.65f, 0.21f));
+			std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", .3f);
+			std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+			m_upgrade_level_green_texture->bind();
+			engine::renderer::submit(shader, m_ugr2_indicator->mesh(), l2_right_transform);
+		}
+
+		//left upgrade slot
+		glm::mat4 lugs_transfrom(1.f);
+		lugs_transfrom = glm::translate(lugs_transfrom, glm::vec3(-0.3f, -0.8f, 0.21f));
+		std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", .3f);
+		std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+		if (can_afford_left_upgrade)
+			m_upgrade_level_green_texture->bind();
+		else
+			m_upgrade_background_texture->bind();
+		engine::renderer::submit(shader, m_left_upgrade->mesh(), lugs_transfrom);
+
+		//right upgrade slot
+		glm::mat4 rugs_transfrom(1.f);
+		rugs_transfrom = glm::translate(rugs_transfrom, glm::vec3(0.3f, -0.8f, 0.21f));
+		std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("transparency", .3f);
+		std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("has_texture", true);
+		if (can_afford_right_upgrade)
+			m_upgrade_level_green_texture->bind();
+		else
+			m_upgrade_background_texture->bind();
+		engine::renderer::submit(shader, m_left_upgrade->mesh(), rugs_transfrom);
+
+		m_text_manager->render_text(text_shader, "Press \"K\" to upgrade", (float)engine::application::window().width() / 2 - 250.f, 140.f, .5f, glm::vec4(0.f, 0.f, 0.f, 1.f));
+		m_text_manager->render_text(text_shader, "Press \"L\" to upgrade", (float)engine::application::window().width() / 2 + 30.f, 140.f, .5f, glm::vec4(0.f, 0.f, 0.f, 1.f));
+	}
 }
 
 void example_layer::hud_init()
@@ -831,4 +1159,55 @@ void example_layer::hud_init()
 	//create health icon
 	m_health_txt2d = engine::texture_2d::create("assets/textures/health.png", true);
 	m_health_quad = quad::create(glm::vec2(0.08f, 0.08f));
+
+	//create upgrade tab
+	m_upgrade_zone = quad::create(glm::vec2(0.8f, 0.15f));
+	m_ugl1_indicator = quad::create(glm::vec2(0.04f, 0.04f));
+	m_ugl2_indicator = quad::create(glm::vec2(0.04f, 0.04f));
+	m_ugr1_indicator = quad::create(glm::vec2(0.04f, 0.04f));
+	m_ugr2_indicator = quad::create(glm::vec2(0.04f, 0.04f));
+	m_left_upgrade = quad::create(glm::vec2(0.15f, 0.08f));
+	m_right_upgrade = quad::create(glm::vec2(0.15f, 0.08f));
+	m_upgrade_level_green_texture = engine::texture_2d::create("assets/textures/green.png", true);
+	m_upgrade_background_texture = engine::texture_2d::create("assets/textures/grey.png", true);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//tower selection and placement
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool example_layer::placement_possible(engine::bounding_box test_box)
+{
+	bool test_result = true;
+
+	//check against other towers
+	for (auto tower : m_towers)
+		if (test_box.collision(tower->bounding_box()))
+			test_result = false;
+
+	//check against path segments
+	for (auto segment : m_path_bboxes)
+		if (test_box.collision(segment))
+			test_result = false;
+
+	return test_result;
+}
+
+void example_layer::tower_select()
+{
+	for (auto tower : m_towers)
+	{
+		if (m_placement_gun->bounding_box().collision(tower->bounding_box()))
+		{
+			m_selected_tower = tower;
+			m_selected_tower->set_to_render_range(true);
+			break;
+		}
+	}
+}
+
+void example_layer::tower_unselect()
+{
+	m_selected_tower->set_to_render_range(false);
+	m_selected_tower = nullptr;
 }

@@ -1,3 +1,10 @@
+// _____		 _____   _____   _____    _   __  _____   _____
+//|  _  |		|  ___|	|  _  | |  _  |  | | / / |  _  | |  ___|
+//| |_| |		| |___	| |_| | | |_| |  | |/ /  | |_| | | |___ 
+//|  ___|		|  ___|	|  _  | |  _  |  |   |   |  _  | |___  | 
+//| |		_   | |		| | | | | | \ \  | |\ \  | | | |  ___| |
+//|_|	   |_|  |_|		|_| |_| |_|  \_\ |_| \_\ |_| |_| |_____|
+
 #include "bullet.h"
 
 bullet::bullet(engine::game_object_properties& props, float range, glm::vec3 direction, glm::vec3 origin, float damage) : m_range(range), m_direction(direction), m_origin(origin), m_damage(damage)

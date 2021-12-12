@@ -16,6 +16,7 @@ namespace engine
 		float width() { return m_width; }
 		float height() { return m_height; }
 		float depth() { return m_depth; }
+		glm::vec3 bottom() { return m_bottom; }
 
 	private:
 		glm::vec3 m_bottom;

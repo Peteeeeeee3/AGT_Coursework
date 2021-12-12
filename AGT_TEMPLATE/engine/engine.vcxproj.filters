@@ -1380,6 +1380,9 @@
     <ClInclude Include="src\engine\utils\bounding_box.h">
       <Filter>src\engine\utils</Filter>
     </ClInclude>
+    <ClInclude Include="src\engine\utils\raycaster.h">
+      <Filter>src\engine\utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\core\application.cpp">
@@ -1521,6 +1524,9 @@
       <Filter>src\engine\entities\shapes</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\utils\bounding_boxe.cpp">
+      <Filter>src\engine\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\utils\raycaster.cpp">
       <Filter>src\engine\utils</Filter>
     </ClCompile>
   </ItemGroup>

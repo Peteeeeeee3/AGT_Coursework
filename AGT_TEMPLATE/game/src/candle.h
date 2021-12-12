@@ -1,3 +1,10 @@
+// _____		 _____   _____   _____    _   __  _____   _____
+//|  _  |		|  ___|	|  _  | |  _  |  | | / / |  _  | |  ___|
+//| |_| |		| |___	| |_| | | |_| |  | |/ /  | |_| | | |___ 
+//|  ___|		|  ___|	|  _  | |  _  |  |   |   |  _  | |___  | 
+//| |		_   | |		| | | | | | \ \  | |\ \  | | | |  ___| |
+//|_|	   |_|  |_|		|_| |_| |_|  \_\ |_| \_\ |_| |_| |_____|
+
 #pragma once
 #include <engine.h>
 #include "tower.h"
@@ -5,6 +12,7 @@
 #include "enemy.h"
 #include "billboard.h"
 #include "fire_ball.h"
+
 
 class candle : public tower
 {
@@ -29,7 +37,7 @@ public:
 	bool active_cam() { return m_active_cam; }
 	shockwave fire_ring() { return m_fire_ring; }
 
-	void light_render(engine::ref<engine::shader> shader);
+	void light_render(engine::ref<engine::shader> shader, int num_point_lights);
 
 	static engine::ref<candle> create(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies);
 
@@ -46,6 +54,5 @@ private:
 	float						m_turret_Speed;
 	shockwave					m_fire_ring;
 	engine::PointLight			m_pointLight;
-	uint32_t					m_num_point_lights = 1;
 	engine::ref<engine::material> m_lightsource_material{};
 };

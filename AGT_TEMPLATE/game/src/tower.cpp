@@ -1,3 +1,10 @@
+// _____		 _____   _____   _____    _   __  _____   _____
+//|  _  |		|  ___|	|  _  | |  _  |  | | / / |  _  | |  ___|
+//| |_| |		| |___	| |_| | | |_| |  | |/ /  | |_| | | |___ 
+//|  ___|		|  ___|	|  _  | |  _  |  |   |   |  _  | |___  | 
+//| |		_   | |		| | | | | | \ \  | |\ \  | | | |  ___| |
+//|_|	   |_|  |_|		|_| |_| |_|  \_\ |_| \_\ |_| |_| |_____|
+
 #include "tower.h"
 
 tower::tower(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies) : engine::game_object(props), m_active_enemies(enemies)

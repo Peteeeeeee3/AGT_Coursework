@@ -1,3 +1,10 @@
+// _____		 _____   _____   _____    _   __  _____   _____
+//|  _  |		|  ___|	|  _  | |  _  |  | | / / |  _  | |  ___|
+//| |_| |		| |___	| |_| | | |_| |  | |/ /  | |_| | | |___ 
+//|  ___|		|  ___|	|  _  | |  _  |  |   |   |  _  | |___  | 
+//| |		_   | |		| | | | | | \ \  | |\ \  | | | |  ___| |
+//|_|	   |_|  |_|		|_| |_| |_|  \_\ |_| \_\ |_| |_| |_____|
+
 #include "wizard_hat.h"
 
 wizard_hat::wizard_hat(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies) : tower(props, enemies)
@@ -5,6 +12,10 @@ wizard_hat::wizard_hat(const engine::game_object_properties& props, std::vector<
 	m_damage = 10.f;
 	m_attack_speed = 1.f;
 	m_range = 3.f;
+	m_ugr1_cost = 150.f;
+	m_ugr2_cost = 350.f;
+	m_ugl1_cost = 350.f;
+	m_ugl2_cost = 1200.f;
 	init();
 	init_range();
 }
@@ -20,7 +31,7 @@ void wizard_hat::init()
 void wizard_hat::update(std::vector<engine::ref<enemy>> enemies, float dt)
 {
 	m_elapsed += dt;
-
+	m_play_spark_sound = false;
 	m_active_enemies = enemies;
 
 	m_lightning.on_update(dt);
@@ -44,51 +55,55 @@ void wizard_hat::attack()
 			enemy->damage(m_damage);
 		}
 	}
+
+	m_play_spark_sound = true;
 }
 
 //range
 void wizard_hat::upgradeRight_lvl1(player& player)
 {
-	int cost = 150;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugr1_cost)
 	{
 		m_range = 4.f;
+		init_range();
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugr1_cost);
+		m_right_level = 1;
 	}
 }
 
 void wizard_hat::upgradeRight_lvl2(player& player)
 {
-	int cost = 350;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugr2_cost)
 	{
 		m_range = 7.f;
+		init_range();
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugr2_cost);
+		m_right_level = 2;
 	}
 }
 
 //fire rate
 void wizard_hat::upgradeLeft_lvl1(player& player)
 {
-	int cost = 350;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugl1_cost)
 	{
 		m_attack_speed = 0.8f;
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugl1_cost);
+		m_left_level = 1;
 	}
 }
 
 void wizard_hat::upgradeLeft_lvl2(player& player)
 {
-	int cost = 1200;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugl2_cost)
 	{
 		m_attack_speed = 0.25f;
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugl2_cost);
+		m_left_level = 2;
 	}
 }
 

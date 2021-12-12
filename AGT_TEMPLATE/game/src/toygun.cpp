@@ -1,3 +1,10 @@
+// _____		 _____   _____   _____    _   __  _____   _____
+//|  _  |		|  ___|	|  _  | |  _  |  | | / / |  _  | |  ___|
+//| |_| |		| |___	| |_| | | |_| |  | |/ /  | |_| | | |___ 
+//|  ___|		|  ___|	|  _  | |  _  |  |   |   |  _  | |___  | 
+//| |		_   | |		| | | | | | \ \  | |\ \  | | | |  ___| |
+//|_|	   |_|  |_|		|_| |_| |_|  \_\ |_| \_\ |_| |_| |_____|
+
 #include "toygun.h"
 
 toygun::toygun(const engine::game_object_properties& props, std::vector<engine::ref<enemy>>& enemies) : tower(props, enemies)
@@ -5,6 +12,10 @@ toygun::toygun(const engine::game_object_properties& props, std::vector<engine::
 	m_damage = 20.f;
 	m_attack_speed = 1.f;
 	m_range = 8.f;
+	m_ugr1_cost = 250.f;
+	m_ugr2_cost = 750.f;
+	m_ugl1_cost = 300.f;
+	m_ugl2_cost = 1000.f;
 	init();
 	init_range();
 }
@@ -118,46 +129,48 @@ void toygun::render_bullets(engine::ref<engine::shader> shader)
 //range
 void toygun::upgradeRight_lvl1(player& player)
 {
-	int cost = 250;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugr1_cost)
 	{
 		m_range = 12.f;
+		init_range();
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugr1_cost);
+		m_right_level = 1;
 	}
 }
 
 void toygun::upgradeRight_lvl2(player& player)
 {
-	int cost = 750;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugr2_cost)
 	{
 		m_range = 20.f;
+		init_range();
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugr2_cost);
+		m_right_level = 2;
 	}
 }
 
 //fire rate
 void toygun::upgradeLeft_lvl1(player& player)
 {
-	int cost = 300;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugl1_cost)
 	{
 		m_attack_speed = 0.8f;
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugl1_cost);
+		m_left_level = 1;
 	}
 }
 
 void toygun::upgradeLeft_lvl2(player& player)
 {
-	int cost = 1000;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugl2_cost)
 	{
 		m_attack_speed = 0.25f;
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugl2_cost);
+		m_left_level = 2;
 	}
 }
 

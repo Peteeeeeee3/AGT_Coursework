@@ -15,6 +15,9 @@
 #include "quad.h"
 #include "candle.h"
 #include "engine/utils/bounding_box.h"
+#include "engine/utils/raycaster.h"
+#include "engine/utils/bounding_box.h"
+
 
 class example_layer : public engine::layer
 {
@@ -32,14 +35,11 @@ private:
 	//misc
 	/////////////////
 
+	engine::raycaster					m_raycaster;
+
 	engine::ref<engine::skybox>			m_game_skybox{};
 	engine::ref<engine::skybox>			m_menu_skybox{};
 	engine::ref<engine::game_object>	m_terrain{};
-	engine::ref<wizard_hat>				m_cone{};
-	engine::ref<candle>					m_candle{};
-	engine::ref<engine::cylinder>		m_candle_body{};
-	engine::ref<engine::pentahedron>	m_candle_flame{};
-	engine::ref<toygun>					m_game_gun{};
 
 	player m_player;
 
@@ -49,6 +49,30 @@ private:
 
 	engine::ref<engine::bullet_manager> m_physics_manager{};
 	float								m_prev_sphere_y_vel = 0.f;
+
+	/////////////////
+	//selection and placement
+	/////////////////
+
+	engine::ref<wizard_hat>				m_placement_cone{};
+	engine::ref<candle>					m_placement_candle{};
+	engine::ref<engine::cylinder>		m_candle_body{};
+	engine::ref<engine::pentahedron>	m_candle_flame{};
+	engine::ref<toygun>					m_placement_gun{};
+
+	bool								m_render_cone = false;
+	bool								m_render_candle = false;
+	bool								m_render_gun = false;
+
+	engine::game_object_properties m_wiz_props;
+	engine::game_object_properties m_candle_props;
+	engine::game_object_properties m_toygun_props;
+
+	bool can_afford_left_upgrade = false;
+	bool can_afford_right_upgrade = false;
+
+	void tower_select();
+	void tower_unselect();
 
 	/////////////////
 	//audio
@@ -63,9 +87,9 @@ private:
 
 	engine::DirectionalLight            m_directionalLight;
 	engine::PointLight					m_enemy_lead_light;
-	uint32_t							m_num_point_lights = 1;
 	engine::ref<engine::material>		m_lightsource_material{};
 	engine::ref<engine::game_object>	m_enemy_lead_light_source;
+	uint32_t							m_num_point_lights = 1;
 
 	int lead_light_target_index();
 
@@ -109,6 +133,9 @@ private:
 
 	void init_path();
 	void draw_path(const engine::ref<engine::shader>& shader);
+	std::vector<engine::bounding_box>	m_path_bboxes;
+
+	bool placement_possible(engine::bounding_box test_box);
 
 	////////////////
 	//handling waves
@@ -137,6 +164,8 @@ private:
 
 	std::vector<engine::ref<tower>>		m_towers;
 
+	std::shared_ptr<tower>				m_selected_tower;
+
 	////////////////
 	//handling HUD
 	////////////////
@@ -159,6 +188,18 @@ private:
 	engine::ref<quad>					m_health_quad{};
 	engine::ref<engine::texture_2d>		m_health_txt2d{};
 
+	engine::ref<quad>					m_upgrade_zone{};
+	engine::ref<quad>					m_ugl1_indicator{};
+	engine::ref<quad>					m_ugl2_indicator{};
+	engine::ref<quad>					m_ugr1_indicator{};
+	engine::ref<quad>					m_ugr2_indicator{};
+	engine::ref<quad>					m_right_upgrade{};
+	engine::ref<quad>					m_left_upgrade{};
+	engine::ref<engine::texture_2d>		m_upgrade_level_green_texture;
+	engine::ref<engine::texture_2d>		m_upgrade_background_texture;
+	engine::ref<engine::texture_2d>		m_upgrade_bkgrnd_txtr_green;
+
+
 	void hud_on_render(engine::ref<engine::shader> shader);
 	void hud_init();
 
@@ -171,9 +212,12 @@ private:
 	engine::ref<toygun>					m_menu_toygun_l{};
 	engine::ref<engine::game_object>	m_menu_text{};
 	engine::ref<engine::game_object>	m_menu_controls{};
+	engine::ref<engine::game_object>	m_menu_controls2{};
 
 	bool								inMenu = true;
+	bool								showing_title = true;
 	bool								showingCtrls = false;
+	bool								showingCtrls2 = false;
 	glm::vec3							m_menu_active_pos = glm::vec3(0.f, 5.5f, 10.f);
 	glm::vec3							m_menu_inactive_pos = glm::vec3(0.f, 5.5f, -15.f);
 };

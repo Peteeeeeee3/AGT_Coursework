@@ -1,3 +1,10 @@
+// _____		 _____   _____   _____    _   __  _____   _____
+//|  _  |		|  ___|	|  _  | |  _  |  | | / / |  _  | |  ___|
+//| |_| |		| |___	| |_| | | |_| |  | |/ /  | |_| | | |___ 
+//|  ___|		|  ___|	|  _  | |  _  |  |   |   |  _  | |___  | 
+//| |		_   | |		| | | | | | \ \  | |\ \  | | | |  ___| |
+//|_|	   |_|  |_|		|_| |_| |_|  \_\ |_| \_\ |_| |_| |_____|
+
 #include "candle.h"
 #include "pch.h"
 #include "engine/core/input.h"
@@ -11,6 +18,10 @@ candle::candle(const engine::game_object_properties& props, std::vector<engine::
 	m_attack_speed = 5.f;
 	m_turret_Speed = 1.f;
 	m_range = 5.f;
+	m_ugr1_cost = 250.f;
+	m_ugr2_cost = 600.f;
+	m_ugl1_cost = 150.f;
+	m_ugl2_cost = 350.f;
 	init();
 	init_range();
 }
@@ -109,46 +120,46 @@ void candle::attack()
 //flash frequency
 void candle::upgradeRight_lvl1(player& player)
 {
-	int cost = 250;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugr1_cost)
 	{
 		m_attack_speed = 4.f;
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugr1_cost);
+		m_right_level = 1;
 	}
 }
 
 void candle::upgradeRight_lvl2(player& player)
 {
-	int cost = 600;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugr2_cost)
 	{
 		m_attack_speed = 3.f;
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugr2_cost);
+		m_right_level = 2;
 	}
 }
 
 //flash duration
 void candle::upgradeLeft_lvl1(player& player)
 {
-	int cost = 150;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugl1_cost)
 	{
 		m_stun_duration = 2.5f;
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugl1_cost);
+		m_left_level = 1;
 	}
 }
 
 void candle::upgradeLeft_lvl2(player& player)
 {
-	int cost = 350;
-	if (player.score() >= cost)
+	if (player.score() >= m_ugl2_cost)
 	{
 		m_stun_duration = 3.5f;
 		//subtract cost from score
-		player.set_score(player.score() - cost);
+		player.set_score(player.score() - m_ugl2_cost);
+		m_left_level = 2;
 	}
 }
 
@@ -158,10 +169,10 @@ void candle::reset_shot()
 	m_shot = nullptr;
 }
 
-void candle::light_render(engine::ref<engine::shader> shader)
+void candle::light_render(engine::ref<engine::shader> shader, int num_point_lights)
 {
-	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("gNumPointLights", (int) m_num_point_lights);
-	m_pointLight.submit(shader, 0);
+	std::dynamic_pointer_cast<engine::gl_shader>(shader)->set_uniform("gNumPointLights", num_point_lights);
+	m_pointLight.submit(shader, num_point_lights - 1);
 	m_lightsource_material->submit(shader);
 	engine::renderer::submit(shader, m_flash_source->meshes().at(0), glm::translate(glm::mat4(1.f), m_pointLight.Position));
 }
